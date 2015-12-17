@@ -51,6 +51,11 @@
 #ifndef __ATOMIC_VAR_H
 #define __ATOMIC_VAR_H
 
+#ifdef ENABLE_KLEE
+#define atomicIncr(var,count,mutex) do { var += (count); } while(0)
+#define atomicDecr(var,count,mutex) do { var -= (count); } while(0)
+#define atomicGet(var,dstvar,mutex) do { dstvar = var; } while(0)
+#else
 #if defined(__ATOMIC_RELAXED)
 /* Implementation using __atomic macros. */
 
@@ -89,6 +94,7 @@
     dstvar = var; \
     pthread_mutex_unlock(&mutex); \
 } while(0)
+#endif
 #endif
 
 #endif /* __ATOMIC_VAR_H */

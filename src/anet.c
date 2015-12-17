@@ -236,6 +236,7 @@ int anetResolveIP(char *err, char *host, char *ipbuf, size_t ipbuf_len) {
 }
 
 static int anetSetReuseAddr(char *err, int fd) {
+#ifndef ENABLE_KLEE
     int yes = 1;
     /* Make sure connection-intensive things like the redis benckmark
      * will be able to close/open sockets a zillion of times */
@@ -243,6 +244,7 @@ static int anetSetReuseAddr(char *err, int fd) {
         anetSetError(err, "setsockopt SO_REUSEADDR: %s", strerror(errno));
         return ANET_ERR;
     }
+#endif
     return ANET_OK;
 }
 

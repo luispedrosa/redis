@@ -94,6 +94,7 @@ void lazyfreeFreeSlotsMapFromBioThread(zskiplist *sl);
 
 /* Initialize the background system, spawning the thread. */
 void bioInit(void) {
+#ifndef ENABLE_KLEE
     pthread_attr_t attr;
     pthread_t thread;
     size_t stacksize;
@@ -126,6 +127,7 @@ void bioInit(void) {
         }
         bio_threads[j] = thread;
     }
+#endif
 }
 
 void bioCreateBackgroundJob(int type, void *arg1, void *arg2, void *arg3) {
