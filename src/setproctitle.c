@@ -146,6 +146,7 @@ static int spt_copyargs(int argc, char *argv[]) {
 
 
 void spt_init(int argc, char *argv[]) {
+#ifndef ENABLE_KLEE
         char **envp = environ;
 	char *base, *end, *nul, *tmp;
 	int i, error;
@@ -206,6 +207,7 @@ syerr:
 	error = errno;
 error:
 	SPT.error = error;
+#endif
 } /* spt_init() */
 
 

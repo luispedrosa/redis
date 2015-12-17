@@ -31,6 +31,10 @@
 
 #include <string.h>
 
+#ifdef ENABLE_KLEE
+#define FD_ZERO(fdset) memset(fdset, 0, sizeof(fd_set))
+#endif
+
 typedef struct aeApiState {
     fd_set rfds, wfds;
     /* We need to have a copy of the fd sets as it's not safe to reuse
