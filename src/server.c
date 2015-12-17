@@ -3935,7 +3935,7 @@ int redisIsSupervised(int mode) {
 }
 
 
-int main(int argc, char **argv) {
+int redis_main(int argc, char **argv) {
     struct timeval tv;
     int j;
 
@@ -4109,6 +4109,15 @@ int main(int argc, char **argv) {
     aeMain(server.el);
     aeDeleteEventLoop(server.el);
     return 0;
+}
+
+int main(int argc, char **argv) {
+  redis_main(argc, argv);
+}
+
+void __attribute__((noinline, weak)) spa_entry() {
+  char *argv[] = {"redis-server", NULL};
+  redis_main(1, argv);
 }
 
 /* The End */
