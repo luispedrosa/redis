@@ -59,6 +59,7 @@ static void anetSetError(char *err, const char *fmt, ...)
 }
 
 int anetSetBlock(char *err, int fd, int non_block) {
+#ifndef ENABLE_KLEE
     int flags;
 
     /* Set the socket blocking (if non_block is zero) or non-blocking.
@@ -78,6 +79,7 @@ int anetSetBlock(char *err, int fd, int non_block) {
         anetSetError(err, "fcntl(F_SETFL,O_NONBLOCK): %s", strerror(errno));
         return ANET_ERR;
     }
+#endif
     return ANET_OK;
 }
 
@@ -423,7 +425,11 @@ int anetRead(int fd, char *buf, int count)
 {
     int nread, totlen = 0;
     while(totlen != count) {
+#ifdef ENABLE_KLEE
+        nread = recv(fd,buf,count-totlen,0);
+#else
         nread = read(fd,buf,count-totlen);
+#endif
         if (nread == 0) return totlen;
         if (nread == -1) return -1;
         totlen += nread;
@@ -438,7 +444,11 @@ int anetWrite(int fd, char *buf, int count)
 {
     int nwritten, totlen = 0;
     while(totlen != count) {
+#ifdef ENABLE_KLEE
+        nwritten = send(fd,buf,count-totlen,0);
+#else
         nwritten = write(fd,buf,count-totlen);
+#endif
         if (nwritten == 0) return totlen;
         if (nwritten == -1) return -1;
         totlen += nwritten;
