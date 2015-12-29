@@ -86,7 +86,11 @@ typedef long long mstime_t; /* millisecond time type. */
 #define CRON_DBS_PER_CALL 16
 #define NET_MAX_WRITES_PER_EVENT (1024*64)
 #define PROTO_SHARED_SELECT_CMDS 10
+#ifdef ENABLE_KLEE
+#define OBJ_SHARED_INTEGERS 10
+#else
 #define OBJ_SHARED_INTEGERS 10000
+#endif
 #define OBJ_SHARED_BULKHDR_LEN 32
 #define LOG_MAX_LEN    1024 /* Default maximum length of syslog messages */
 #define AOF_REWRITE_PERC  100

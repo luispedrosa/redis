@@ -55,8 +55,13 @@
  * Note that even when dict_can_resize is set to 0, not all resizes are
  * prevented: a hash table is still allowed to grow if the ratio between
  * the number of elements and the buckets > dict_force_resize_ratio. */
+#ifdef ENABLE_KLEE
+static int dict_can_resize = 0;
+static unsigned int dict_force_resize_ratio = 1000;
+#else
 static int dict_can_resize = 1;
 static unsigned int dict_force_resize_ratio = 5;
+#endif
 
 /* -------------------------- private prototypes ---------------------------- */
 
