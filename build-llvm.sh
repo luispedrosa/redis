@@ -70,7 +70,7 @@ make -kj`grep -c processor /proc/cpuinfo` \
   MALLOC=libc V=1 \
   CC="clang" LD="llvm-link" AR="true" RANLIB="true" \
   CFLAGS="-O0 -g -DENABLE_SPA -DENABLE_KLEE -emit-llvm" \
-  LDFLAGS="-O0 -g -DENABLE_SPA -DENABLE_KLEE -emit-llvm"
+  LDFLAGS="-O0 -g -DENABLE_SPA -DENABLE_KLEE -emit-llvm" || true
 
 llvm-link -o src/redis-cli \
   src/anet.o \
@@ -151,3 +151,5 @@ clang -Wall -O0 -g -DENABLE_SPA -DENABLE_KLEE -emit-llvm \
 llvm-link -o spa-client.bc \
   spa-client.o \
   src/sds.o src/zmalloc.o deps/hiredis/libhiredis.a
+
+cp src/redis-server redis-server-llvm
