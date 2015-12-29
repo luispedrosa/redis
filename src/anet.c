@@ -94,6 +94,7 @@ int anetBlock(char *err, int fd) {
  * the probe send time, interval, and count. */
 int anetKeepAlive(char *err, int fd, int interval)
 {
+#ifndef ENABLE_KLEE
     int val = 1;
 
     if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof(val)) == -1)
@@ -134,17 +135,20 @@ int anetKeepAlive(char *err, int fd, int interval)
 #else
     ((void) interval); /* Avoid unused var warning for non Linux systems. */
 #endif
+#endif
 
     return ANET_OK;
 }
 
 static int anetSetTcpNoDelay(char *err, int fd, int val)
 {
+#ifndef ENABLE_KLEE
     if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(val)) == -1)
     {
         anetSetError(err, "setsockopt TCP_NODELAY: %s", strerror(errno));
         return ANET_ERR;
     }
+#endif
     return ANET_OK;
 }
 
@@ -161,27 +165,32 @@ int anetDisableTcpNoDelay(char *err, int fd)
 
 int anetSetSendBuffer(char *err, int fd, int buffsize)
 {
+#ifndef ENABLE_KLEE
     if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buffsize, sizeof(buffsize)) == -1)
     {
         anetSetError(err, "setsockopt SO_SNDBUF: %s", strerror(errno));
         return ANET_ERR;
     }
+#endif
     return ANET_OK;
 }
 
 int anetTcpKeepAlive(char *err, int fd)
 {
+#ifndef ENABLE_KLEE
     int yes = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes)) == -1) {
         anetSetError(err, "setsockopt SO_KEEPALIVE: %s", strerror(errno));
         return ANET_ERR;
     }
+#endif
     return ANET_OK;
 }
 
 /* Set the socket send timeout (SO_SNDTIMEO socket option) to the specified
  * number of milliseconds, or disable it if the 'ms' argument is zero. */
 int anetSendTimeout(char *err, int fd, long long ms) {
+#ifndef ENABLE_KLEE
     struct timeval tv;
 
     tv.tv_sec = ms/1000;
@@ -190,6 +199,7 @@ int anetSendTimeout(char *err, int fd, long long ms) {
         anetSetError(err, "setsockopt SO_SNDTIMEO: %s", strerror(errno));
         return ANET_ERR;
     }
+#endif
     return ANET_OK;
 }
 

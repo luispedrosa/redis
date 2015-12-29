@@ -79,7 +79,11 @@ typedef long long mstime_t; /* millisecond time type. */
 #define REDIS_DBCRON_DBS_PER_CALL 16
 #define REDIS_MAX_WRITE_PER_EVENT (1024*64)
 #define REDIS_SHARED_SELECT_CMDS 10
+#ifdef ENABLE_KLEE
+#define REDIS_SHARED_INTEGERS 10
+#else
 #define REDIS_SHARED_INTEGERS 10000
+#endif
 #define REDIS_SHARED_BULKHDR_LEN 32
 #define REDIS_MAX_LOGMSG_LEN    1024 /* Default maximum length of syslog messages */
 #define REDIS_AOF_REWRITE_PERC  100

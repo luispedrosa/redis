@@ -123,6 +123,7 @@ struct redisServer server; /* server global state */
 struct redisCommand redisCommandTable[] = {
     {"get",getCommand,2,"rF",0,NULL,1,1,1,0,0},
     {"set",setCommand,-3,"wm",0,NULL,1,1,1,0,0},
+#ifndef ENABLE_KLEE
     {"setnx",setnxCommand,3,"wmF",0,NULL,1,1,1,0,0},
     {"setex",setexCommand,4,"wm",0,NULL,1,1,1,0,0},
     {"psetex",psetexCommand,4,"wm",0,NULL,1,1,1,0,0},
@@ -284,6 +285,7 @@ struct redisCommand redisCommandTable[] = {
     {"pfmerge",pfmergeCommand,-2,"wm",0,NULL,1,-1,1,0,0},
     {"pfdebug",pfdebugCommand,-3,"w",0,NULL,0,0,0,0,0},
     {"latency",latencyCommand,-2,"arslt",0,NULL,0,0,0,0,0}
+#endif
 };
 
 struct evictionPoolEntry *evictionPoolAlloc(void);
@@ -337,6 +339,7 @@ void redisLogRaw(int level, const char *msg) {
  * is used across the code. The raw version is only used in order to dump
  * the INFO output on crash. */
 void redisLog(int level, const char *fmt, ...) {
+#ifndef ENABLE_KLEE
     va_list ap;
     char msg[REDIS_MAX_LOGMSG_LEN];
 
@@ -347,6 +350,7 @@ void redisLog(int level, const char *fmt, ...) {
     va_end(ap);
 
     redisLogRaw(level,msg);
+#endif
 }
 
 /* Log a fixed message without printf-alike capabilities, in a way that is
