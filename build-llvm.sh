@@ -3,6 +3,7 @@
 set -ex
 
 make distclean
+rm -f redis-server-llvm
 
 make -kj`grep -c processor /proc/cpuinfo` \
   MALLOC=libc V=1 \

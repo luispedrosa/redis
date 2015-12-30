@@ -3,6 +3,7 @@
 set -ex
 
 make distclean
+rm -f redis-cli-dbg redis-server-dbg
 
 make -kj`grep -c processor /proc/cpuinfo` \
   MALLOC=libc V=1 CFLAGS="-O0 -g"
