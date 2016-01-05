@@ -148,11 +148,22 @@ typedef long long mstime_t; /* millisecond time type. */
 #define REDIS_METRIC_COUNT 3
 
 /* Protocol and I/O related defines */
+#ifdef ENABLE_KLEE
+#define REDIS_MAX_QUERYBUF_LEN  (128) /* max query buffer. */
+#define REDIS_IOBUF_LEN         (128)  /* Generic I/O buffer size */
+#define REDIS_REPLY_CHUNK_BYTES (128) /* output buffer */
+#define REDIS_INLINE_MAX_SIZE   (128) /* Max size of inline reads */
+#define REDIS_MBULK_BIG_ARG     (128)
+
+#else
+
 #define REDIS_MAX_QUERYBUF_LEN  (1024*1024*1024) /* 1GB max query buffer. */
 #define REDIS_IOBUF_LEN         (1024*16)  /* Generic I/O buffer size */
 #define REDIS_REPLY_CHUNK_BYTES (16*1024) /* 16k output buffer */
 #define REDIS_INLINE_MAX_SIZE   (1024*64) /* Max size of inline reads */
 #define REDIS_MBULK_BIG_ARG     (1024*32)
+#endif
+
 #define REDIS_LONGSTR_SIZE      21          /* Bytes needed for long -> str */
 #define REDIS_AOF_AUTOSYNC_BYTES (1024*1024*32) /* fdatasync every 32MB */
 /* When configuring the Redis eventloop, we setup it so that the total number

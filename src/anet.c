@@ -270,7 +270,9 @@ static int anetCreateSocket(char *err, int domain) {
     /* Make sure connection-intensive things like the redis benchmark
      * will be able to close/open sockets a zillion of times */
     if (anetSetReuseAddr(err,s) == ANET_ERR) {
+#ifndef ENABLE_KLEE
         close(s);
+#endif
         return ANET_ERR;
     }
     return s;
@@ -329,7 +331,9 @@ static int anetTcpGenericConnect(char *err, char *addr, int port,
              * return an EINPROGRESS error here. */
             if (errno == EINPROGRESS && flags & ANET_CONNECT_NONBLOCK)
                 goto end;
+#ifndef ENABLE_KLEE
             close(s);
+#endif
             s = ANET_ERR;
             continue;
         }
@@ -343,7 +347,9 @@ static int anetTcpGenericConnect(char *err, char *addr, int port,
 
 error:
     if (s != ANET_ERR) {
+#ifndef ENABLE_KLEE
         close(s);
+#endif
         s = ANET_ERR;
     }
 
@@ -403,7 +409,9 @@ int anetUnixGenericConnect(char *err, char *path, int flags)
             return s;
 
         anetSetError(err, "connect: %s", strerror(errno));
+#ifndef ENABLE_KLEE
         close(s);
+#endif
         return ANET_ERR;
     }
     return s;
@@ -460,13 +468,17 @@ int anetWrite(int fd, char *buf, int count)
 static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len, int backlog) {
     if (bind(s,sa,len) == -1) {
         anetSetError(err, "bind: %s", strerror(errno));
+#ifndef ENABLE_KLEE
         close(s);
+#endif
         return ANET_ERR;
     }
 
     if (listen(s, backlog) == -1) {
         anetSetError(err, "listen: %s", strerror(errno));
+#ifndef ENABLE_KLEE
         close(s);
+#endif
         return ANET_ERR;
     }
     return ANET_OK;
@@ -476,7 +488,9 @@ static int anetV6Only(char *err, int s) {
     int yes = 1;
     if (setsockopt(s,IPPROTO_IPV6,IPV6_V6ONLY,&yes,sizeof(yes)) == -1) {
         anetSetError(err, "setsockopt: %s", strerror(errno));
+#ifndef ENABLE_KLEE
         close(s);
+#endif
         return ANET_ERR;
     }
     return ANET_OK;

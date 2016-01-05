@@ -76,7 +76,9 @@ redisClient *createClient(int fd) {
         if (aeCreateFileEvent(server.el,fd,AE_READABLE,
             readQueryFromClient, c) == AE_ERR)
         {
+#ifndef ENABLE_KLEE
             close(fd);
+#endif
             zfree(c);
             return NULL;
         }
@@ -587,7 +589,9 @@ static void acceptCommonHandler(int fd, int flags) {
         redisLog(REDIS_WARNING,
             "Error registering fd event for the new client: %s (fd=%d)",
             strerror(errno),fd);
+#ifndef ENABLE_KLEE
         close(fd); /* May be already closed, just ignore errors */
+#endif
         return;
     }
     /* If maxclient directive is set and this is one client more... close the
@@ -598,7 +602,11 @@ static void acceptCommonHandler(int fd, int flags) {
         char *err = "-ERR max number of clients reached\r\n";
 
         /* That's a best effort error message, don't check write errors */
+#ifdef ENABLE_KLEE
+        if (send(c->fd,err,strlen(err),0) == -1) {
+#else
         if (write(c->fd,err,strlen(err)) == -1) {
+#endif
             /* Nothing to do, Just to avoid the warning... */
         }
         server.stat_rejected_conn++;
@@ -823,7 +831,11 @@ void sendReplyToClient(aeEventLoop *el, int fd, void *privdata, int mask) {
 
     while(c->bufpos > 0 || listLength(c->reply)) {
         if (c->bufpos > 0) {
+#ifdef ENABLE_KLEE
+            nwritten = send(fd,c->buf+c->sentlen,c->bufpos-c->sentlen,0);
+#else
             nwritten = write(fd,c->buf+c->sentlen,c->bufpos-c->sentlen);
+#endif
             if (nwritten <= 0) break;
             c->sentlen += nwritten;
             totwritten += nwritten;
@@ -845,7 +857,11 @@ void sendReplyToClient(aeEventLoop *el, int fd, void *privdata, int mask) {
                 continue;
             }
 
+#ifdef ENABLE_KLEE
+            nwritten = send(fd, ((char*)o->ptr)+c->sentlen,objlen-c->sentlen, 0);
+#else
             nwritten = write(fd, ((char*)o->ptr)+c->sentlen,objlen-c->sentlen);
+#endif
             if (nwritten <= 0) break;
             c->sentlen += nwritten;
             totwritten += nwritten;
@@ -1190,7 +1206,11 @@ void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
     qblen = sdslen(c->querybuf);
     if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
     c->querybuf = sdsMakeRoomFor(c->querybuf, readlen);
+#ifdef ENABLE_KLEE
+    nread = recv(fd, c->querybuf+qblen, readlen, 0);
+#else
     nread = read(fd, c->querybuf+qblen, readlen);
+#endif
     if (nread == -1) {
         if (errno == EAGAIN) {
             nread = 0;
