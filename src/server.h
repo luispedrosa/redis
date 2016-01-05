@@ -159,6 +159,17 @@ typedef long long mstime_t; /* millisecond time type. */
 #define STATS_METRIC_COUNT 3
 
 /* Protocol and I/O related defines */
+#ifdef ENABLE_KLEE
+#define PROTO_MAX_QUERYBUF_LEN  (128) /* max query buffer. */
+#define PROTO_IOBUF_LEN         (128)  /* Generic I/O buffer size */
+#define PROTO_REPLY_CHUNK_BYTES (128) /* output buffer */
+#define PROTO_INLINE_MAX_SIZE   (128) /* Max size of inline reads */
+#define PROTO_MBULK_BIG_ARG     (128)
+#define LONG_STR_SIZE      21          /* Bytes needed for long -> str */
+#define AOF_AUTOSYNC_BYTES (1024*1024*32) /* fdatasync every 32MB */
+
+#else
+
 #define PROTO_MAX_QUERYBUF_LEN  (1024*1024*1024) /* 1GB max query buffer. */
 #define PROTO_IOBUF_LEN         (1024*16)  /* Generic I/O buffer size */
 #define PROTO_REPLY_CHUNK_BYTES (16*1024) /* 16k output buffer */
@@ -166,6 +177,7 @@ typedef long long mstime_t; /* millisecond time type. */
 #define PROTO_MBULK_BIG_ARG     (1024*32)
 #define LONG_STR_SIZE      21          /* Bytes needed for long -> str */
 #define AOF_AUTOSYNC_BYTES (1024*1024*32) /* fdatasync every 32MB */
+#endif
 
 /* When configuring the server eventloop, we setup it so that the total number
  * of file descriptors we can handle are server.maxclients + RESERVED_FDS +
