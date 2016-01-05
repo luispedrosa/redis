@@ -5,6 +5,24 @@
 
 #include "deps/hiredis/hiredis.h"
 
+void __attribute__((noinline, weak)) redis_sucess() {
+  // Complicated NOP to prevent inlining.
+  static int i = 0;
+  i++;
+}
+
+void __attribute__((noinline, weak)) redis_fail() {
+  // Complicated NOP to prevent inlining.
+  static int i = 0;
+  i++;
+}
+
+void __attribute__((noinline, weak)) redis_error() {
+  // Complicated NOP to prevent inlining.
+  static int i = 0;
+  i++;
+}
+
 void __attribute__((noinline, weak)) redis_done() {
   // Complicated NOP to prevent inlining.
   static int i = 0;
@@ -27,13 +45,20 @@ void spa_entry() {
   freeReplyObject(reply);
 
   reply = redisCommand(context, "GET k");
-  assert(reply && reply->type == REDIS_REPLY_STRING);
+
+  if (reply && reply->type == REDIS_REPLY_STRING) {
 #ifndef ENABLE_KLEE
-  printf("%s\n", reply->str);
+    printf("%s\n", reply->str);
 #endif
 
-  assert(strcmp(set_value, reply->str) == 0);
-
+    if (strcmp(set_value, reply->str) == 0) {
+      redis_sucess();
+    } else {
+      redis_fail();
+    }
+  } else {
+    redis_error();
+  }
   redis_done();
 
   freeReplyObject(reply);
