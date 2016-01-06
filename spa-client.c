@@ -17,12 +17,6 @@ void __attribute__((noinline, weak)) redis_fail() {
   i++;
 }
 
-void __attribute__((noinline, weak)) redis_error() {
-  // Complicated NOP to prevent inlining.
-  static int i = 0;
-  i++;
-}
-
 void __attribute__((noinline, weak)) redis_done() {
   // Complicated NOP to prevent inlining.
   static int i = 0;
@@ -45,19 +39,15 @@ void spa_entry() {
   freeReplyObject(reply);
 
   reply = redisCommand(context, "GET k");
-
-  if (reply && reply->type == REDIS_REPLY_STRING) {
+  assert(reply && reply->type == REDIS_REPLY_STRING);
 #ifndef ENABLE_KLEE
-    printf("%s\n", reply->str);
+  printf("%s\n", reply->str);
 #endif
 
-    if (strcmp(set_value, reply->str) == 0) {
-      redis_sucess();
-    } else {
-      redis_fail();
-    }
+  if (strcmp(set_value, reply->str) == 0) {
+    redis_sucess();
   } else {
-    redis_error();
+    redis_fail();
   }
   redis_done();
 
