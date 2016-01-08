@@ -58,7 +58,11 @@ ssize_t syncWrite(int fd, char *ptr, ssize_t size, long long timeout) {
 
         /* Optimistically try to write before checking if the file descriptor
          * is actually writable. At worst we get EAGAIN. */
+#ifdef ENABLE_KLEE
+        nwritten = send(fd,ptr,size,0);
+#else
         nwritten = write(fd,ptr,size);
+#endif
         if (nwritten == -1) {
             if (errno != EAGAIN) return -1;
         } else {
@@ -95,7 +99,11 @@ ssize_t syncRead(int fd, char *ptr, ssize_t size, long long timeout) {
 
         /* Optimistically try to read before checking if the file descriptor
          * is actually readable. At worst we get EAGAIN. */
+#ifdef ENABLE_KLEE
+        nread = recv(fd,ptr,size,0);
+#else
         nread = read(fd,ptr,size);
+#endif
         if (nread == 0) return -1; /* short read. */
         if (nread == -1) {
             if (errno != EAGAIN) return -1;

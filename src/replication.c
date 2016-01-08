@@ -1383,6 +1383,7 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
     }
 
     /* Check for errors in the socket. */
+#ifndef ENABLE_KLEE
     if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &sockerr, &errlen) == -1)
         sockerr = errno;
     if (sockerr) {
@@ -1390,6 +1391,7 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
             strerror(sockerr));
         goto error;
     }
+#endif
 
     /* Send a PING to check the master is able to reply without errors. */
     if (server.repl_state == REPL_STATE_CONNECTING) {

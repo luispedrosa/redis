@@ -456,11 +456,7 @@ void aeMain(aeEventLoop *eventLoop) {
     while (!eventLoop->stop) {
         if (eventLoop->beforesleep != NULL)
             eventLoop->beforesleep(eventLoop);
-#ifdef ENABLE_KLEE
-        aeProcessEvents(eventLoop, AE_FILE_EVENTS);
-#else
         aeProcessEvents(eventLoop, AE_ALL_EVENTS);
-#endif
     }
 }
 
