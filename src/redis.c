@@ -3709,4 +3709,9 @@ void __attribute__((noinline, weak)) spa_entry() {
   redis_main(1, argv);
 }
 
+void __attribute__((noinline, weak)) spa_entry_slave() {
+  char *argv[] = {"redis-server", "--port", "6380", "--slaveof", "127.0.0.1", "6379", NULL};
+  redis_main(6, argv);
+}
+
 /* The End */
