@@ -1386,6 +1386,63 @@ void backgroundSaveDoneHandler(int exitcode, int bysignal) {
 /* Spawn an RDB child that writes the RDB to the sockets of the slaves
  * that are currently in REDIS_REPL_WAIT_BGSAVE_START state. */
 int rdbSaveToSlavesSockets(void) {
+#ifdef ENABLE_KLEE
+  int *fds;
+  int numfds;
+  listNode *ln;
+  listIter li;
+
+  if (server.rdb_child_pid != -1) return C_ERR;
+
+  /* Collect the file descriptors of the slaves we want to transfer
+   * the RDB to, which are i WAIT_BGSAVE_START state. */
+  fds = zmalloc(sizeof(int)*listLength(server.slaves));
+  numfds = 0;
+
+  listRewind(server.slaves,&li);
+  while((ln = listNext(&li))) {
+    client *slave = ln->value;
+
+    if (slave->replstate == SLAVE_STATE_WAIT_BGSAVE_START) {
+      fds[numfds++] = slave->fd;
+      replicationSetupSlaveForFullResync(slave,getPsyncInitialOffset());
+      /* Put the socket in non-blocking mode to simplify RDB transfer.
+       * We'll restore it when the children returns (since duped socket
+       * will share the O_NONBLOCK attribute with the parent). */
+      anetBlock(NULL,slave->fd);
+      anetSendTimeout(NULL,slave->fd,server.repl_timeout*1000);
+    }
+  }
+
+  int retval;
+  rio slave_sockets;
+
+  rioInitWithFdset(&slave_sockets,fds,numfds);
+
+  retval = rdbSaveRioWithEOFMark(&slave_sockets,NULL);
+  if (retval == C_OK && rioFlush(&slave_sockets) == 0)
+    retval = C_ERR;
+
+  zfree(fds);
+
+  listRewind(server.slaves,&li);
+  while((ln = listNext(&li))) {
+    client *slave = ln->value;
+
+    if (slave->replstate == SLAVE_STATE_WAIT_BGSAVE_END) {
+      serverLog(LL_WARNING,
+                "Slave %s correctly received the streamed RDB file.",
+                replicationGetSlaveName(slave));
+      /* Restore the socket as non-blocking. */
+      anetNonBlock(NULL,slave->fd);
+      anetSendTimeout(NULL,slave->fd,0);
+    }
+  }
+
+  updateSlavesWaitingBgsave(C_OK, RDB_CHILD_TYPE_SOCKET);
+
+  return C_OK; /* Unreached. */
+#else
     int *fds;
     uint64_t *clientids;
     int numfds;
@@ -1519,6 +1576,7 @@ int rdbSaveToSlavesSockets(void) {
         return REDIS_OK;
     }
     return REDIS_OK; /* unreached */
+#endif
 }
 
 void saveCommand(redisClient *c) {
