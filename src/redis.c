@@ -225,7 +225,9 @@ struct redisCommand redisCommandTable[] = {
     {"scan",scanCommand,-2,"rR",0,NULL,0,0,0,0,0},
     {"dbsize",dbsizeCommand,1,"rF",0,NULL,0,0,0,0,0},
     {"auth",authCommand,2,"rsltF",0,NULL,0,0,0,0,0},
+#endif
     {"ping",pingCommand,-1,"rtF",0,NULL,0,0,0,0,0},
+#ifndef ENABLE_KLEE
     {"echo",echoCommand,2,"rF",0,NULL,0,0,0,0,0},
     {"save",saveCommand,1,"ars",0,NULL,0,0,0,0,0},
     {"bgsave",bgsaveCommand,1,"ar",0,NULL,0,0,0,0,0},
@@ -237,8 +239,10 @@ struct redisCommand redisCommandTable[] = {
     {"exec",execCommand,1,"sM",0,NULL,0,0,0,0,0},
     {"discard",discardCommand,1,"rsF",0,NULL,0,0,0,0,0},
     {"sync",syncCommand,1,"ars",0,NULL,0,0,0,0,0},
+#endif
     {"psync",syncCommand,3,"ars",0,NULL,0,0,0,0,0},
     {"replconf",replconfCommand,-1,"arslt",0,NULL,0,0,0,0,0},
+#ifndef ENABLE_KLEE
     {"flushdb",flushdbCommand,1,"w",0,NULL,0,0,0,0,0},
     {"flushall",flushallCommand,1,"w",0,NULL,0,0,0,0,0},
     {"sort",sortCommand,-2,"wm",0,sortGetKeys,1,1,1,0,0},
