@@ -333,6 +333,9 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
                 aeDeleteTimeEvent(eventLoop, id);
             }
             te = eventLoop->timeEventHead;
+#ifdef ENABLE_KLEE
+            break;
+#endif
         } else {
             te = te->next;
         }
