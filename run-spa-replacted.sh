@@ -32,7 +32,7 @@ spa-explore \
     --toward spa_msg_output_point \
     --stop-at spa_msg_select_no_input_point \
     --use-shallow-distance \
-    --output-at spa_msg_output_point \
+    --output-at spa_msg_select_no_input_point \
     --participant redis-master \
     redis-server-llvm \
     2>&1 | tee redis-master.log &
@@ -46,9 +46,9 @@ spa-explore \
     --connect-sockets \
     --start-from spa_entry_slave \
     --toward spa_msg_output_point \
-    --stop-at spa_msg_output_point \
+    --stop-at spa_msg_select_no_input_point \
     --use-shallow-distance \
-    --output-at spa_msg_output_point \
+    --output-at spa_msg_select_no_input_point \
     --participant redis-slave \
     redis-server-llvm \
     2>&1 | tee redis-slave.log &
