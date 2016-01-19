@@ -454,13 +454,28 @@ int aeWait(int fd, int mask, long long milliseconds) {
     }
 }
 
+#ifdef ENABLE_KLEE
+void __attribute__((noinline, weak)) redis_done() {
+  // Complicated NOP to prevent inlining.
+  static int i = 0;
+  i++;
+}
+#endif
+
 void aeMain(aeEventLoop *eventLoop) {
     eventLoop->stop = 0;
+#ifdef ENABLE_KLEE
+    for (int i = 0; i < 100 && !eventLoop->stop; i++ ) {
+#else
     while (!eventLoop->stop) {
+#endif
         if (eventLoop->beforesleep != NULL)
             eventLoop->beforesleep(eventLoop);
         aeProcessEvents(eventLoop, AE_ALL_EVENTS);
     }
+#ifdef ENABLE_KLEE
+  redis_done();
+#endif
 }
 
 char *aeGetApiName(void) {
