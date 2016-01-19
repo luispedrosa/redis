@@ -30,9 +30,9 @@ spa-explore \
     --connect-sockets \
     --start-from spa_entry_master \
     --toward spa_msg_output_point \
-    --stop-at spa_msg_select_no_input_point \
+    --stop-at redis_done \
     --use-shallow-distance \
-    --output-at spa_msg_select_no_input_point \
+    --output-at redis_done \
     --participant redis-master \
     redis-server-llvm \
     2>&1 | tee redis-master.log &
@@ -46,9 +46,9 @@ spa-explore \
     --connect-sockets \
     --start-from spa_entry_slave \
     --toward spa_msg_output_point \
-    --stop-at spa_msg_select_no_input_point \
+    --stop-at redis_done \
     --use-shallow-distance \
-    --output-at spa_msg_select_no_input_point \
+    --output-at redis_done \
     --participant redis-slave \
     redis-server-llvm \
     2>&1 | tee redis-slave.log &
