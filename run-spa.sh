@@ -18,6 +18,7 @@ spa-explore \
     --output-at spa_msg_no_input_point \
     --output-at redis_done \
     --participant redis-client \
+    --ip 127.0.0.1 \
     spa-client.bc \
     2>&1 | tee redis-client.log &
 
@@ -34,6 +35,7 @@ spa-explore \
     --use-shallow-distance \
     --output-at spa_msg_output_point \
     --participant redis-server \
+    --ip 127.0.0.2 \
     redis-server-llvm \
     2>&1 | tee redis-server.log &
 
