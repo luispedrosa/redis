@@ -28,7 +28,7 @@ void spa_entry_single() {
   spa_api_input_var(set_value);
   set_value[sizeof(set_value) - 1] = '\0';
 
-  redisContext *context = redisConnect("127.0.0.1", 6379);
+  redisContext *context = redisConnect("127.0.0.2", 6379);
   assert(context);
 
   redisReply *reply = redisCommand(context, "SET k %s", set_value);
@@ -60,7 +60,7 @@ void spa_entry_masterslave() {
   spa_api_input_var(set_value);
   set_value[sizeof(set_value) - 1] = '\0';
 
-  redisContext *masterContext = redisConnect("127.0.0.1", 6379);
+  redisContext *masterContext = redisConnect("127.0.0.2", 6379);
   assert(masterContext);
 
   redisReply *reply = redisCommand(masterContext, "SET k %s", set_value);
@@ -71,7 +71,7 @@ void spa_entry_masterslave() {
   freeReplyObject(reply);
   redisFree(masterContext);
 
-  redisContext *slaveContext = redisConnect("127.0.0.1", 6380);
+  redisContext *slaveContext = redisConnect("127.0.0.3", 6380);
   assert(slaveContext);
 
   reply = redisCommand(slaveContext, "GET k");
