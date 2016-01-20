@@ -12,7 +12,7 @@ spa-explore \
     --out-paths redis-replicated.paths \
     --out-paths-append \
     --connect-sockets \
-    --start-from spa_entry \
+    --start-from spa_entry_masterslave \
     --toward redis_done \
     --stop-at redis_done \
     --output-at spa_msg_no_input_point \
