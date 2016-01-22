@@ -39,12 +39,13 @@ void spa_entry_single() {
   freeReplyObject(reply);
 
   reply = redisCommand(context, "GET k");
-  assert(reply && reply->type == REDIS_REPLY_STRING);
+  assert(reply &&
+         (reply->type == REDIS_REPLY_STRING || reply->type == REDIS_REPLY_NIL));
 #ifndef ENABLE_KLEE
-  printf("%s\n", reply->str);
+  printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
 #endif
 
-  if (strcmp(set_value, reply->str) == 0) {
+  if (reply->type == REDIS_REPLY_STRING && strcmp(set_value, reply->str) == 0) {
     redis_sucess();
   } else {
     redis_fail();
@@ -75,12 +76,13 @@ void spa_entry_masterslave() {
   assert(slaveContext);
 
   reply = redisCommand(slaveContext, "GET k");
-  assert(reply && reply->type == REDIS_REPLY_STRING);
+  assert(reply &&
+         (reply->type == REDIS_REPLY_STRING || reply->type == REDIS_REPLY_NIL));
 #ifndef ENABLE_KLEE
-  printf("%s\n", reply->str);
+  printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
 #endif
 
-  if (strcmp(set_value, reply->str) == 0) {
+  if (reply->type == REDIS_REPLY_STRING && strcmp(set_value, reply->str) == 0) {
     redis_sucess();
   } else {
     redis_fail();
