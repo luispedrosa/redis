@@ -580,7 +580,11 @@ int clientHasPendingReplies(client *c) {
     return c->bufpos || listLength(c->reply);
 }
 
+#ifdef ENABLE_KLEE
+#define MAX_ACCEPTS_PER_CALL 1
+#else
 #define MAX_ACCEPTS_PER_CALL 1000
+#endif
 static void acceptCommonHandler(int fd, int flags) {
     client *c;
     if ((c = createClient(fd)) == NULL) {
