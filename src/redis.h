@@ -78,13 +78,15 @@ typedef long long mstime_t; /* millisecond time type. */
 #define REDIS_CONFIGLINE_MAX    1024
 #define REDIS_DBCRON_DBS_PER_CALL 16
 #define REDIS_MAX_WRITE_PER_EVENT (1024*64)
-#define REDIS_SHARED_SELECT_CMDS 10
 #ifdef ENABLE_KLEE
+#define REDIS_SHARED_SELECT_CMDS 1
 #define REDIS_SHARED_INTEGERS 10
+#define REDIS_SHARED_BULKHDR_LEN 1
 #else
+#define REDIS_SHARED_SELECT_CMDS 10
 #define REDIS_SHARED_INTEGERS 10000
-#endif
 #define REDIS_SHARED_BULKHDR_LEN 32
+#endif
 #define REDIS_MAX_LOGMSG_LEN    1024 /* Default maximum length of syslog messages */
 #define REDIS_AOF_REWRITE_PERC  100
 #define REDIS_AOF_REWRITE_MIN_SIZE (64*1024*1024)
@@ -94,7 +96,11 @@ typedef long long mstime_t; /* millisecond time type. */
 #define REDIS_MAX_CLIENTS 10000
 #define REDIS_AUTHPASS_MAX_LEN 512
 #define REDIS_DEFAULT_SLAVE_PRIORITY 100
+#ifdef ENABLE_KLEE
+#define REDIS_REPL_TIMEOUT 0
+#else
 #define REDIS_REPL_TIMEOUT 60
+#endif
 #define REDIS_REPL_PING_SLAVE_PERIOD 10
 #define REDIS_RUN_ID_SIZE 40
 #define REDIS_EOF_MARK_SIZE 40
@@ -300,7 +306,11 @@ typedef long long mstime_t; /* millisecond time type. */
 #define REDIS_REPL_ONLINE 9 /* RDB file transmitted, sending just updates. */
 
 /* Synchronous read timeout - slave side */
+#ifdef ENABLE_KLEE
+#define REDIS_REPL_SYNCIO_TIMEOUT 0
+#else
 #define REDIS_REPL_SYNCIO_TIMEOUT 5
+#endif
 
 /* List related stuff */
 #define REDIS_HEAD 0
