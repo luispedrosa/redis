@@ -900,7 +900,9 @@ void scriptingInit(int setup) {
         ldbInit();
     }
 
+#ifndef ENABLE_KLEE
     luaLoadLibraries(lua);
+#endif
     luaRemoveUnsupportedFunctions(lua);
 
     /* Initialize a dictionary we use to map SHAs to scripts.
@@ -911,6 +913,7 @@ void scriptingInit(int setup) {
     /* Register the redis commands table and fields */
     lua_newtable(lua);
 
+#ifndef ENABLE_KLEE
     /* redis.call */
     lua_pushstring(lua,"call");
     lua_pushcfunction(lua,luaRedisCallCommand);
@@ -1039,6 +1042,7 @@ void scriptingInit(int setup) {
         luaL_loadbuffer(lua,errh_func,strlen(errh_func),"@err_handler_def");
         lua_pcall(lua,0,0,0);
     }
+#endif
 
     /* Create the (non connected) client that we use to execute Redis commands
      * inside the Lua interpreter.
