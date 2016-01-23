@@ -2006,7 +2006,11 @@ void replicationCron(void) {
                 (slave->replstate == REDIS_REPL_WAIT_BGSAVE_END &&
                  server.rdb_child_type != REDIS_RDB_CHILD_TYPE_SOCKET))
             {
+#ifdef ENABLE_KLEE
+                if (send(slave->fd, "\n", 1, 0) == -1) {
+#else
                 if (write(slave->fd, "\n", 1) == -1) {
+#endif
                     /* Don't worry, it's just a ping. */
                 }
             }
