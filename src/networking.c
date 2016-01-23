@@ -582,7 +582,11 @@ void copyClientOutputBuffer(redisClient *dst, redisClient *src) {
     dst->reply_bytes = src->reply_bytes;
 }
 
+#ifdef ENABLE_KLEE
+#define MAX_ACCEPTS_PER_CALL 1
+#else
 #define MAX_ACCEPTS_PER_CALL 1000
+#endif
 static void acceptCommonHandler(int fd, int flags) {
     redisClient *c;
     if ((c = createClient(fd)) == NULL) {
