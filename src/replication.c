@@ -395,7 +395,11 @@ int replicationSetupSlaveForFullResync(client *slave, long long offset) {
     if (!(slave->flags & CLIENT_PRE_PSYNC)) {
         buflen = snprintf(buf,sizeof(buf),"+FULLRESYNC %s %lld\r\n",
                           server.runid,offset);
+#ifdef ENABLE_KLEE
+        if (send(slave->fd,buf,buflen,0) != buflen) {
+#else
         if (write(slave->fd,buf,buflen) != buflen) {
+#endif
             freeClientAsync(slave);
             return C_ERR;
         }
@@ -2257,7 +2261,11 @@ void replicationCron(void) {
             (slave->replstate == SLAVE_STATE_WAIT_BGSAVE_END &&
              server.rdb_child_type != RDB_CHILD_TYPE_SOCKET))
         {
+#ifdef ENABLE_KLEE
+            if (send(slave->fd, "\n", 1, 0) == -1) {
+#else
             if (write(slave->fd, "\n", 1) == -1) {
+#endif
                 /* Don't worry, it's just a ping. */
             }
         }
