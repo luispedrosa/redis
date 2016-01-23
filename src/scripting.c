@@ -1052,7 +1052,9 @@ void scriptingInit(int setup) {
     /* Lua beginners often don't use "local", this is likely to introduce
      * subtle bugs in their code. To prevent problems we protect accesses
      * to global variables. */
+#ifndef ENABLE_KLEE
     scriptingEnableGlobalsProtection(lua);
+#endif
 
     server.lua = lua;
 }
