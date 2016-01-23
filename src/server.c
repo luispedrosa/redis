@@ -3710,6 +3710,7 @@ void usage(void) {
 }
 
 void redisAsciiArt(void) {
+#ifndef ENABLE_KLEE
 #include "asciilogo.h"
     char *buf = zmalloc(1024*16);
     char *mode;
@@ -3740,6 +3741,7 @@ void redisAsciiArt(void) {
         serverLogRaw(LL_NOTICE|LL_RAW,buf);
     }
     zfree(buf);
+#endif
 }
 
 static void sigShutdownHandler(int sig) {
@@ -3980,7 +3982,9 @@ int redis_main(int argc, char **argv) {
     setlocale(LC_COLLATE,"");
     zmalloc_enable_thread_safeness();
     zmalloc_set_oom_handler(redisOutOfMemoryHandler);
+#ifndef ENABLE_KLEE
     srand(time(NULL)^getpid());
+#endif
     gettimeofday(&tv,NULL);
     dictSetHashFunctionSeed(tv.tv_sec^tv.tv_usec^getpid());
     server.sentinel_mode = checkForSentinelMode(argc,argv);

@@ -544,6 +544,7 @@ void getRandomHexChars(char *p, unsigned int len) {
     char *charset = "0123456789abcdef";
     unsigned int j;
 
+#ifndef ENABLE_KLEE
     /* Global state. */
     static int seed_initialized = 0;
     static unsigned char seed[20]; /* The SHA1 seed, from /dev/urandom. */
@@ -579,6 +580,7 @@ void getRandomHexChars(char *p, unsigned int len) {
             p += copylen;
         }
     } else {
+#endif
         /* If we can't read from /dev/urandom, do some reasonable effort
          * in order to create some entropy, since this function is used to
          * generate run_id and cluster instance IDs */
@@ -610,7 +612,9 @@ void getRandomHexChars(char *p, unsigned int len) {
             p[j] ^= rand();
             p[j] = charset[p[j] & 0x0F];
         }
+#ifndef ENABLE_KLEE
     }
+#endif
 }
 
 /* Given the filename, return the absolute path as an SDS string, or NULL

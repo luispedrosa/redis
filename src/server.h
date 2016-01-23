@@ -85,13 +85,15 @@ typedef long long mstime_t; /* millisecond time type. */
 #define CONFIG_MAX_LINE    1024
 #define CRON_DBS_PER_CALL 16
 #define NET_MAX_WRITES_PER_EVENT (1024*64)
-#define PROTO_SHARED_SELECT_CMDS 10
 #ifdef ENABLE_KLEE
-#define OBJ_SHARED_INTEGERS 10
+#define PROTO_SHARED_SELECT_CMDS 1
+#define OBJ_SHARED_INTEGERS 1
+#define OBJ_SHARED_BULKHDR_LEN 1
 #else
+#define PROTO_SHARED_SELECT_CMDS 10
 #define OBJ_SHARED_INTEGERS 10000
-#endif
 #define OBJ_SHARED_BULKHDR_LEN 32
+#endif
 #define LOG_MAX_LEN    1024 /* Default maximum length of syslog messages */
 #define AOF_REWRITE_PERC  100
 #define AOF_REWRITE_MIN_SIZE (64*1024*1024)
@@ -101,7 +103,11 @@ typedef long long mstime_t; /* millisecond time type. */
 #define CONFIG_DEFAULT_MAX_CLIENTS 10000
 #define CONFIG_AUTHPASS_MAX_LEN 512
 #define CONFIG_DEFAULT_SLAVE_PRIORITY 100
+#ifdef ENABLE_KLEE
+#define CONFIG_DEFAULT_REPL_TIMEOUT 0
+#else
 #define CONFIG_DEFAULT_REPL_TIMEOUT 60
+#endif
 #define CONFIG_DEFAULT_REPL_PING_SLAVE_PERIOD 10
 #define CONFIG_RUN_ID_SIZE 40
 #define RDB_EOF_MARK_SIZE 40
@@ -322,7 +328,11 @@ typedef long long mstime_t; /* millisecond time type. */
 #define SLAVE_CAPA_EOF (1<<0)   /* Can parse the RDB EOF streaming format. */
 
 /* Synchronous read timeout - slave side */
+#ifdef ENABLE_KLEE
+#define CONFIG_REPL_SYNCIO_TIMEOUT 0
+#else
 #define CONFIG_REPL_SYNCIO_TIMEOUT 5
+#endif
 
 /* List related stuff */
 #define LIST_HEAD 0
