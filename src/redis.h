@@ -97,11 +97,12 @@ typedef long long mstime_t; /* millisecond time type. */
 #define REDIS_AUTHPASS_MAX_LEN 512
 #define REDIS_DEFAULT_SLAVE_PRIORITY 100
 #ifdef ENABLE_KLEE
-#define REDIS_REPL_TIMEOUT 0
+#define REDIS_REPL_TIMEOUT 100000000
+#define REDIS_REPL_PING_SLAVE_PERIOD 100000000
 #else
 #define REDIS_REPL_TIMEOUT 60
-#endif
 #define REDIS_REPL_PING_SLAVE_PERIOD 10
+#endif
 #define REDIS_RUN_ID_SIZE 40
 #define REDIS_EOF_MARK_SIZE 40
 #define REDIS_DEFAULT_REPL_BACKLOG_SIZE (1024*1024)    /* 1mb */
@@ -307,7 +308,11 @@ typedef long long mstime_t; /* millisecond time type. */
 
 /* Synchronous read timeout - slave side */
 #ifdef ENABLE_KLEE
+<<<<<<< HEAD:src/redis.h
 #define REDIS_REPL_SYNCIO_TIMEOUT 0
+=======
+#define CONFIG_REPL_SYNCIO_TIMEOUT 100000000
+>>>>>>> Fixed timer issues in analysis.:src/server.h
 #else
 #define REDIS_REPL_SYNCIO_TIMEOUT 5
 #endif
@@ -417,7 +422,11 @@ typedef long long mstime_t; /* millisecond time type. */
 /* Using the following macro you can run code inside serverCron() with the
  * specified period, specified in milliseconds.
  * The actual resolution depends on server.hz. */
+#ifdef ENABLE_KLEE
+#define run_with_period(_ms_) if (1)
+#else
 #define run_with_period(_ms_) if ((_ms_ <= 1000/server.hz) || !(server.cronloops%((_ms_)/(1000/server.hz))))
+#endif
 
 /* We can print the stacktrace, so our assert is defined this way: */
 #define redisAssertWithInfo(_c,_o,_e) ((_e)?(void)0 : (_redisAssertWithInfo(_c,_o,#_e,__FILE__,__LINE__),_exit(1)))
