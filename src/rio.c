@@ -202,7 +202,11 @@ static size_t rioFdsetWrite(rio *r, const void *buf, size_t len) {
              * of short writes. */
             size_t nwritten = 0;
             while(nwritten != count) {
+#ifdef ENABLE_KLEE
+                retval = send(r->io.fdset.fds[j],p+nwritten,count-nwritten,0);
+#else
                 retval = write(r->io.fdset.fds[j],p+nwritten,count-nwritten);
+#endif
                 if (retval <= 0) {
                     /* With blocking sockets, which is the sole user of this
                      * rio target, EWOULDBLOCK is returned only because of
