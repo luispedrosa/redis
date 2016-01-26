@@ -465,7 +465,7 @@ void __attribute__((noinline, weak)) redis_done() {
 void aeMain(aeEventLoop *eventLoop) {
     eventLoop->stop = 0;
 #ifdef ENABLE_KLEE
-    for (int i = 0; i < 30 && !eventLoop->stop; i++ ) {
+    for (int i = 0; i < 10 && !eventLoop->stop; i++ ) {
 #else
     while (!eventLoop->stop) {
 #endif
