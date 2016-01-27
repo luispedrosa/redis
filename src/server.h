@@ -63,6 +63,9 @@ typedef long long mstime_t; /* millisecond time type. */
 #include "latency.h" /* Latency monitor API */
 #include "sparkline.h" /* ASII graphs API */
 #include "quicklist.h"
+#ifdef ENABLE_KLEE
+#include "rio.h"
+#endif
 
 /* Following includes allow test functions to be called from Redis main() */
 #include "zipmap.h"
@@ -916,8 +919,12 @@ struct redisServer {
     off_t repl_transfer_read; /* Amount of RDB read from master during sync. */
     off_t repl_transfer_last_fsync_off; /* Offset when we fsync-ed last time. */
     int repl_transfer_s;     /* Slave -> Master SYNC socket */
+#ifdef ENABLE_KLEE
+    rio repl_transfer_rio;
+#else
     int repl_transfer_fd;    /* Slave -> Master SYNC temp file descriptor */
     char *repl_transfer_tmpfile; /* Slave-> master SYNC temp file name */
+#endif
     time_t repl_transfer_lastio; /* Unix time of the latest read, for timeout */
     int repl_serve_stale_data; /* Serve stale data when link is down? */
     int repl_slave_ro;          /* Slave is read only? */
@@ -1289,6 +1296,9 @@ long long getPsyncInitialOffset(void);
 int replicationSetupSlaveForFullResync(client *slave, long long offset);
 
 /* Generic persistence functions */
+#ifdef ENABLE_KLEE
+void startLoadingFromRio(rio *rdb);
+#endif
 void startLoading(FILE *fp);
 void loadingProgress(off_t pos);
 void stopLoading(void);
