@@ -5,7 +5,7 @@
 
 #include "deps/hiredis/hiredis.h"
 
-void __attribute__((noinline, weak)) redis_sucess() {
+void __attribute__((noinline, weak)) redis_success() {
   // Complicated NOP to prevent inlining.
   static int i = 0;
   i++;
@@ -46,7 +46,7 @@ void spa_entry_single() {
 #endif
 
   if (reply->type == REDIS_REPLY_STRING && strcmp(set_value, reply->str) == 0) {
-    redis_sucess();
+    redis_success();
   } else {
     redis_fail();
   }
@@ -83,7 +83,7 @@ void spa_entry_masterslave() {
 #endif
 
   if (reply->type == REDIS_REPLY_STRING && strcmp(set_value, reply->str) == 0) {
-    redis_sucess();
+    redis_success();
   } else {
     redis_fail();
   }
