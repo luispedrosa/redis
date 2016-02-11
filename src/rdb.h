@@ -104,6 +104,9 @@ int rdbSaveLen(rio *rdb, uint32_t len);
 uint32_t rdbLoadLen(rio *rdb, int *isencoded);
 int rdbSaveObjectType(rio *rdb, robj *o);
 int rdbLoadObjectType(rio *rdb);
+#ifdef ENABLE_KLEE
+int rdbLoadFromRio(rio *rdb);
+#endif
 int rdbLoad(char *filename);
 int rdbSaveBackground(char *filename);
 int rdbSaveToSlavesSockets(void);

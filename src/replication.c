@@ -1072,20 +1072,31 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
     }
 
     server.repl_transfer_lastio = server.unixtime;
+#ifdef ENABLE_KLEE
+    if (!rioWrite(&server.repl_transfer_rio,buf,nread)) {
+        serverLog(LL_WARNING,"Write error or short write writing to the buffer needed for MASTER <-> SLAVE synchronization");
+        goto error;
+    }
+#else
     if (write(server.repl_transfer_fd,buf,nread) != nread) {
         serverLog(LL_WARNING,"Write error or short write writing to the DB dump file needed for MASTER <-> SLAVE synchronization: %s", strerror(errno));
         goto error;
     }
+#endif
     server.repl_transfer_read += nread;
 
     /* Delete the last 40 bytes from the file if we reached EOF. */
     if (usemark && eof_reached) {
+#ifdef ENABLE_KLEE
+        sdsrange(server.repl_transfer_rio.io.buffer.ptr,0,server.repl_transfer_read - CONFIG_RUN_ID_SIZE - 1);
+#else
         if (ftruncate(server.repl_transfer_fd,
             server.repl_transfer_read - CONFIG_RUN_ID_SIZE) == -1)
         {
             serverLog(LL_WARNING,"Error truncating the RDB file received from the master for SYNC: %s", strerror(errno));
             goto error;
         }
+#endif
     }
 
     /* Sync data on disk from time to time, otherwise at the end of the transfer
@@ -1096,8 +1107,10 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
     {
         off_t sync_size = server.repl_transfer_read -
                           server.repl_transfer_last_fsync_off;
+#ifndef ENABLE_KLEE
         rdb_fsync_range(server.repl_transfer_fd,
             server.repl_transfer_last_fsync_off, sync_size);
+#endif
         server.repl_transfer_last_fsync_off += sync_size;
     }
 
@@ -1108,11 +1121,15 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
     }
 
     if (eof_reached) {
+#ifdef ENABLE_KLEE
+        server.repl_transfer_rio.io.buffer.pos = 0;
+#else
         if (rename(server.repl_transfer_tmpfile,server.rdb_filename) == -1) {
             serverLog(LL_WARNING,"Failed trying to rename the temp DB into dump.rdb in MASTER <-> SLAVE synchronization: %s", strerror(errno));
             cancelReplicationHandshake();
             return;
         }
+#endif
         serverLog(LL_NOTICE, "MASTER <-> SLAVE sync: Flushing old data");
         signalFlushedDb(-1);
         emptyDb(
@@ -1125,6 +1142,13 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
          * time for non blocking loading. */
         aeDeleteFileEvent(server.el,server.repl_transfer_s,AE_READABLE);
         serverLog(LL_NOTICE, "MASTER <-> SLAVE sync: Loading DB in memory");
+#ifdef ENABLE_KLEE
+        if (rdbLoadFromRio(&server.repl_transfer_rio) != C_OK) {
+            serverLog(LL_WARNING,"Failed trying to load the MASTER synchronization DB from buffer");
+            cancelReplicationHandshake();
+            return;
+        }
+#else
         if (rdbLoad(server.rdb_filename) != C_OK) {
             serverLog(LL_WARNING,"Failed trying to load the MASTER synchronization DB from disk");
             cancelReplicationHandshake();
@@ -1133,6 +1157,7 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
         /* Final setup of the connected slave <- master link */
         zfree(server.repl_transfer_tmpfile);
         close(server.repl_transfer_fd);
+#endif
         replicationCreateMasterClient(server.repl_transfer_s);
         serverLog(LL_NOTICE, "MASTER <-> SLAVE sync: Finished with success");
         /* Restart the AOF subsystem now that we finished the sync. This
@@ -1375,8 +1400,11 @@ int slaveTryPartialResynchronization(int fd, int read_reply) {
 }
 
 void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
-    char tmpfile[256], *err = NULL;
+    char *err = NULL;
+#ifndef ENABLE_KLEE
+    char tmpfile[256];
     int dfd, maxtries = 5;
+#endif
     int sockerr = 0, psync_result;
     socklen_t errlen = sizeof(sockerr);
     UNUSED(el);
@@ -1567,6 +1595,7 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
         }
     }
 
+#ifndef ENABLE_KLEE
     /* Prepare a suitable temp file for bulk transfer */
     while(maxtries--) {
         snprintf(tmpfile,256,
@@ -1579,6 +1608,7 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
         serverLog(LL_WARNING,"Opening the temp file needed for MASTER <-> SLAVE synchronization: %s",strerror(errno));
         goto error;
     }
+#endif
 
     /* Setup the non blocking download of the bulk file. */
     if (aeCreateFileEvent(server.el,fd, AE_READABLE,readSyncBulkPayload,NULL)
@@ -1594,9 +1624,15 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
     server.repl_transfer_size = -1;
     server.repl_transfer_read = 0;
     server.repl_transfer_last_fsync_off = 0;
+#ifdef ENABLE_KLEE
+    rioInitWithBuffer(&server.repl_transfer_rio,sdsempty());
+#else
     server.repl_transfer_fd = dfd;
+#endif
     server.repl_transfer_lastio = server.unixtime;
+#ifndef ENABLE_KLEE
     server.repl_transfer_tmpfile = zstrdup(tmpfile);
+#endif
     return;
 
 error:
@@ -1655,9 +1691,11 @@ void undoConnectWithMaster(void) {
 void replicationAbortSyncTransfer(void) {
     serverAssert(server.repl_state == REPL_STATE_TRANSFER);
     undoConnectWithMaster();
+#ifndef ENABLE_KLEE
     close(server.repl_transfer_fd);
     unlink(server.repl_transfer_tmpfile);
     zfree(server.repl_transfer_tmpfile);
+#endif
 }
 
 /* This function aborts a non blocking replication attempt if there is one
