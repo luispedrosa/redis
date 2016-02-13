@@ -17,7 +17,7 @@ void __attribute__((noinline, weak)) redis_fail() {
   i++;
 }
 
-void __attribute__((noinline, weak)) redis_done() {
+void __attribute__((noinline, weak)) redis_client_done() {
   // Complicated NOP to prevent inlining.
   static int i = 0;
   i++;
@@ -50,7 +50,7 @@ void spa_entry_single() {
   } else {
     redis_fail();
   }
-  redis_done();
+  redis_client_done();
 
   freeReplyObject(reply);
   redisFree(context);
@@ -87,7 +87,7 @@ void spa_entry_masterslave() {
   } else {
     redis_fail();
   }
-  redis_done();
+  redis_client_done();
 
   freeReplyObject(reply);
   redisFree(slaveContext);
