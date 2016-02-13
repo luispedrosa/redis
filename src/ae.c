@@ -455,7 +455,7 @@ int aeWait(int fd, int mask, long long milliseconds) {
 }
 
 #ifdef ENABLE_KLEE
-void __attribute__((noinline, weak)) redis_done() {
+void __attribute__((noinline, weak)) redis_server_done() {
   // Complicated NOP to prevent inlining.
   static int i = 0;
   i++;
@@ -474,7 +474,7 @@ void aeMain(aeEventLoop *eventLoop) {
         aeProcessEvents(eventLoop, AE_ALL_EVENTS);
     }
 #ifdef ENABLE_KLEE
-  redis_done();
+  redis_server_done();
 #endif
 }
 
