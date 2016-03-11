@@ -97,7 +97,11 @@ typedef struct dictIterator {
 typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
 
 /* This is the initial size of every hash table */
+#ifdef ENABLE_KLEE
+#define DICT_HT_INITIAL_SIZE     1
+#else
 #define DICT_HT_INITIAL_SIZE     4
+#endif
 
 /* ------------------------------- Macros ------------------------------------*/
 #define dictFreeVal(d, entry) \
