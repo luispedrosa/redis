@@ -13,7 +13,7 @@ spa-explore \
     --out-paths redis.paths \
     --out-paths-append \
     --connect-sockets \
-    --start-from spa_entry \
+    --start-from spa_entry_single \
     --toward redis_client_done \
     --stop-at redis_client_done \
     --output-at spa_msg_no_input_point \
