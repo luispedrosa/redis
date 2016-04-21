@@ -204,7 +204,7 @@ void spa_entry_multiserver() {
   //   } else {
   //     redis_fail();
   //   }
-  redis_done();
+  redis_client_done();
 }
 
 void spa_entry_transaction() {
@@ -284,7 +284,7 @@ void spa_entry_transaction() {
 
   redisFree(masterContext);
 
-  redis_done();
+  redis_client_done();
 }
 
 int main(int argc, char *argv[]) {
