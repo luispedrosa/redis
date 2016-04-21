@@ -210,7 +210,7 @@ void spa_entry_multiserver() {
 void spa_entry_transaction() {
   char set_value[2] = "v";
 
-  redisContext *masterContext = redisConnect("127.0.0.2", 6379);
+  redisContext *masterContext = redisConnect("127.0.0.3", 6379);
   assert(masterContext);
 
   int succeeded;
