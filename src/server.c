@@ -239,8 +239,10 @@ struct redisCommand redisCommandTable[] = {
     {"shutdown",shutdownCommand,-1,"arlt",0,NULL,0,0,0,0,0},
     {"lastsave",lastsaveCommand,1,"rRF",0,NULL,0,0,0,0,0},
     {"type",typeCommand,2,"rF",0,NULL,1,1,1,0,0},
+#endif
     {"multi",multiCommand,1,"rsF",0,NULL,0,0,0,0,0},
     {"exec",execCommand,1,"sM",0,NULL,0,0,0,0,0},
+#ifndef ENABLE_KLEE
     {"discard",discardCommand,1,"rsF",0,NULL,0,0,0,0,0},
     {"sync",syncCommand,1,"ars",0,NULL,0,0,0,0,0},
 #endif
@@ -255,7 +257,9 @@ struct redisCommand redisCommandTable[] = {
     {"ttl",ttlCommand,2,"rF",0,NULL,1,1,1,0,0},
     {"pttl",pttlCommand,2,"rF",0,NULL,1,1,1,0,0},
     {"persist",persistCommand,2,"wF",0,NULL,1,1,1,0,0},
+#endif
     {"slaveof",slaveofCommand,3,"ast",0,NULL,0,0,0,0,0},
+#ifndef ENABLE_KLEE
     {"role",roleCommand,1,"lst",0,NULL,0,0,0,0,0},
     {"debug",debugCommand,-2,"as",0,NULL,0,0,0,0,0},
     {"config",configCommand,-2,"art",0,NULL,0,0,0,0,0},
@@ -265,7 +269,9 @@ struct redisCommand redisCommandTable[] = {
     {"punsubscribe",punsubscribeCommand,-1,"rpslt",0,NULL,0,0,0,0,0},
     {"publish",publishCommand,3,"pltrF",0,NULL,0,0,0,0,0},
     {"pubsub",pubsubCommand,-2,"pltrR",0,NULL,0,0,0,0,0},
+#endif
     {"watch",watchCommand,-2,"rsF",0,NULL,1,-1,1,0,0},
+#ifndef ENABLE_KLEE
     {"unwatch",unwatchCommand,1,"rsF",0,NULL,0,0,0,0,0},
     {"cluster",clusterCommand,-2,"ar",0,NULL,0,0,0,0,0},
     {"restore",restoreCommand,-4,"wm",0,NULL,1,1,1,0,0},
