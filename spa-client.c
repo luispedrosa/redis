@@ -144,7 +144,8 @@ void spa_entry_multiserver() {
 #ifndef ENABLE_KLEE
   printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
 #endif
-  if (reply->type == REDIS_REPLY_STRING && strcmp("a", reply->str) != 0) {
+  if (reply->type == REDIS_REPLY_NIL ||
+      (reply->type == REDIS_REPLY_STRING && strcmp("a", reply->str) != 0)) {
     redis_fail();
     redis_client_done();
     assert(0);
@@ -171,7 +172,8 @@ void spa_entry_multiserver() {
 #ifndef ENABLE_KLEE
   printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
 #endif
-  if (reply->type == REDIS_REPLY_STRING && strcmp("a", reply->str) != 0) {
+  if (reply->type == REDIS_REPLY_NIL ||
+      (reply->type == REDIS_REPLY_STRING && strcmp("a", reply->str) != 0)) {
     redis_fail();
     redis_client_done();
     assert(0);
@@ -195,7 +197,8 @@ void spa_entry_multiserver() {
 #ifndef ENABLE_KLEE
   printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
 #endif
-  if (reply->type == REDIS_REPLY_STRING && strcmp("b", reply->str) != 0) {
+  if (reply->type == REDIS_REPLY_NIL ||
+      (reply->type == REDIS_REPLY_STRING && strcmp("b", reply->str) != 0)) {
     redis_fail();
     redis_client_done();
     assert(0);
@@ -208,7 +211,8 @@ void spa_entry_multiserver() {
 #ifndef ENABLE_KLEE
   printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
 #endif
-  if (reply->type == REDIS_REPLY_STRING && strcmp("b", reply->str) != 0) {
+  if (reply->type == REDIS_REPLY_NIL ||
+      (reply->type == REDIS_REPLY_STRING && strcmp("b", reply->str) != 0)) {
     redis_fail();
     redis_client_done();
     assert(0);
