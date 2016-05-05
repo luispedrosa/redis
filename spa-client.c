@@ -113,7 +113,7 @@ void spa_entry_multiserver() {
   freeReplyObject(reply);
   redisFree(masterAContext);
 
-  redisContext *masterBContext = redisConnect("127.0.0.3", 6380);
+  redisContext *masterBContext = redisConnect("127.0.0.3", 6379);
   assert(masterBContext);
 
   reply = redisCommand(masterBContext, "SET k b");
@@ -124,7 +124,7 @@ void spa_entry_multiserver() {
   freeReplyObject(reply);
   redisFree(masterBContext);
 
-  redisContext *slaveAContext = redisConnect("127.0.0.4", 6381);
+  redisContext *slaveAContext = redisConnect("127.0.0.4", 6379);
   assert(slaveAContext);
 
   reply = redisCommand(slaveAContext, "SLAVEOF 127.0.0.2 6379");
@@ -134,10 +134,10 @@ void spa_entry_multiserver() {
 #endif
   freeReplyObject(reply);
 
-  redisContext *slaveBContext = redisConnect("127.0.0.5", 6382);
+  redisContext *slaveBContext = redisConnect("127.0.0.5", 6379);
   assert(slaveBContext);
 
-  reply = redisCommand(slaveBContext, "SLAVEOF 127.0.0.4 6381");
+  reply = redisCommand(slaveBContext, "SLAVEOF 127.0.0.4 6379");
   assert(reply && reply->type == REDIS_REPLY_STATUS);
 #ifndef ENABLE_KLEE
   printf("%s\n", reply->str);
@@ -166,7 +166,7 @@ void spa_entry_multiserver() {
   assert(reply->type == REDIS_REPLY_STRING && strcmp("a", reply->str) == 0);
   freeReplyObject(reply);
 
-  reply = redisCommand(slaveAContext, "SLAVEOF 127.0.0.3 6380");
+  reply = redisCommand(slaveAContext, "SLAVEOF 127.0.0.3 6379");
   assert(reply && reply->type == REDIS_REPLY_STATUS);
 #ifndef ENABLE_KLEE
   printf("%s\n", reply->str);
