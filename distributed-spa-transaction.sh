@@ -2,7 +2,7 @@
 
 set -e
 
-TARGET_CONVERSATION="redis-client1 redis-client2 redis-server redis-client1 redis-client2 redis-server redis-client1 redis-client2 redis-server redis-client1 redis-client2 redis-server redis-client1 redis-client2 redis-server"
+TARGET_CONVERSATION="redis-client1 redis-server redis-client1 redis-server redis-client1 redis-server redis-client1 redis-server redis-client1 redis-client2 redis-server redis-client2 redis-server redis-client2 redis-server redis-client2 redis-server redis-client2 redis-server redis-client1 redis-client2 redis-server redis-client1 redis-client2"
 
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
@@ -25,11 +25,11 @@ spa-explore-conversation \
     redis-transaction.paths \
     >>redis-transaction.paths.log 2>&1 &
 
-# echo "Follow analysis progress on: http://localhost:8000/"
+echo "Follow analysis progress on: http://localhost:8000/"
 spa-doc --serve-http 8000 \
         --map-src /home/lpedrosa/redis=/home/david/Projects/redis \
-        --color-filter "lightgreen:REACHED redis_success" \
-        --color-filter "orangered:REACHED redis_fail" \
+        --color-filter "lightgreen:REACHED redis-client1@redis_success OR REACHED redis-client2@redis_success" \
+        --color-filter "orangered:REACHED redis-client1@redis_fail AND REACHED redis-client2@redis_fail" \
         --color-filter "cyan:CONVERSATION $(echo $TARGET_CONVERSATION | sed 's/ *; */ OR CONVERSATION /')" \
         redis-transaction.paths
 
