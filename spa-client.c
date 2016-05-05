@@ -95,12 +95,12 @@ void spa_entry_masterslave() {
 
 void spa_entry_multiserver() {
   char set_key[2] = "k";
-  spa_api_input_var(set_key);
-  set_key[sizeof(set_key) - 1] = '\0';
+//   spa_api_input_var(set_key);
+//   set_key[sizeof(set_key) - 1] = '\0';
 
   char set_value[2] = "v";
-  spa_api_input_var(set_value);
-  set_value[sizeof(set_value) - 1] = '\0';
+//   spa_api_input_var(set_value);
+//   set_value[sizeof(set_value) - 1] = '\0';
 
   redisContext *masterAContext = redisConnect("127.0.0.2", 6379);
   assert(masterAContext);
@@ -148,23 +148,23 @@ void spa_entry_multiserver() {
   sleep(5);
 #endif
 
-  reply = redisCommand(slaveAContext, "GET k");
-  assert(reply &&
-         (reply->type == REDIS_REPLY_STRING || reply->type == REDIS_REPLY_NIL));
-#ifndef ENABLE_KLEE
-  printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
-#endif
-  assert(reply->type == REDIS_REPLY_STRING && strcmp("a", reply->str) == 0);
-  freeReplyObject(reply);
+//   reply = redisCommand(slaveAContext, "GET k");
+//   assert(reply &&
+//          (reply->type == REDIS_REPLY_STRING || reply->type == REDIS_REPLY_NIL));
+// #ifndef ENABLE_KLEE
+//   printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
+// #endif
+//   assert(reply->type == REDIS_REPLY_STRING && strcmp("a", reply->str) == 0);
+//   freeReplyObject(reply);
 
-  reply = redisCommand(slaveBContext, "GET k");
-  assert(reply &&
-         (reply->type == REDIS_REPLY_STRING || reply->type == REDIS_REPLY_NIL));
-#ifndef ENABLE_KLEE
-  printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
-#endif
-  assert(reply->type == REDIS_REPLY_STRING && strcmp("a", reply->str) == 0);
-  freeReplyObject(reply);
+//   reply = redisCommand(slaveBContext, "GET k");
+//   assert(reply &&
+//          (reply->type == REDIS_REPLY_STRING || reply->type == REDIS_REPLY_NIL));
+// #ifndef ENABLE_KLEE
+//   printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
+// #endif
+//   assert(reply->type == REDIS_REPLY_STRING && strcmp("a", reply->str) == 0);
+//   freeReplyObject(reply);
 
   reply = redisCommand(slaveAContext, "SLAVEOF 127.0.0.3 6380");
   assert(reply && reply->type == REDIS_REPLY_STATUS);
@@ -177,14 +177,14 @@ void spa_entry_multiserver() {
   sleep(5);
 #endif
 
-  reply = redisCommand(slaveAContext, "GET k");
-  assert(reply &&
-         (reply->type == REDIS_REPLY_STRING || reply->type == REDIS_REPLY_NIL));
-#ifndef ENABLE_KLEE
-  printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
-#endif
-  assert(reply->type == REDIS_REPLY_STRING && strcmp("b", reply->str) == 0);
-  freeReplyObject(reply);
+//   reply = redisCommand(slaveAContext, "GET k");
+//   assert(reply &&
+//          (reply->type == REDIS_REPLY_STRING || reply->type == REDIS_REPLY_NIL));
+// #ifndef ENABLE_KLEE
+//   printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
+// #endif
+//   assert(reply->type == REDIS_REPLY_STRING && strcmp("b", reply->str) == 0);
+//   freeReplyObject(reply);
 
   reply = redisCommand(slaveBContext, "GET k");
   assert(reply &&
@@ -288,6 +288,6 @@ void spa_entry_transaction() {
 }
 
 int main(int argc, char *argv[]) {
-  spa_entry_transaction();
+  spa_entry_multiserver();
   return 0;
 }
