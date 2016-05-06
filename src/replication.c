@@ -823,11 +823,13 @@ void updateSlavesWaitingBgsave(int bgsaveerr, int type) {
 void replicationAbortSyncTransfer(void) {
     redisAssert(server.repl_state == REDIS_REPL_TRANSFER);
 
+#ifndef ENABLE_KLEE
     aeDeleteFileEvent(server.el,server.repl_transfer_s,AE_READABLE);
     close(server.repl_transfer_s);
     close(server.repl_transfer_fd);
     unlink(server.repl_transfer_tmpfile);
     zfree(server.repl_transfer_tmpfile);
+#endif
     server.repl_state = REDIS_REPL_CONNECT;
 }
 
@@ -967,7 +969,7 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
     server.repl_transfer_lastio = server.unixtime;
 #ifdef ENABLE_KLEE
     if (!rioWrite(&server.repl_transfer_rio,buf,nread)) {
-        serverLog(LL_WARNING,"Write error or short write writing to the buffer needed for MASTER <-> SLAVE synchronization");
+        redisLog(REDIS_WARNING,"Write error or short write writing to the buffer needed for MASTER <-> SLAVE synchronization");
         goto error;
     }
 #else
@@ -981,7 +983,7 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
     /* Delete the last 40 bytes from the file if we reached EOF. */
     if (usemark && eof_reached) {
 #ifdef ENABLE_KLEE
-        sdsrange(server.repl_transfer_rio.io.buffer.ptr,0,server.repl_transfer_read - CONFIG_RUN_ID_SIZE - 1);
+        sdsrange(server.repl_transfer_rio.io.buffer.ptr,0,server.repl_transfer_read - REDIS_RUN_ID_SIZE - 1);
 #else
         if (ftruncate(server.repl_transfer_fd,
             server.repl_transfer_read - REDIS_RUN_ID_SIZE) == -1)

@@ -62,6 +62,9 @@ typedef long long mstime_t; /* millisecond time type. */
 #include "util.h"    /* Misc functions useful in many places */
 #include "latency.h" /* Latency monitor API */
 #include "sparkline.h" /* ASII graphs API */
+#ifdef ENABLE_KLEE
+#include "rio.h"
+#endif
 
 /* Error codes */
 #define REDIS_OK                0
@@ -308,11 +311,7 @@ typedef long long mstime_t; /* millisecond time type. */
 
 /* Synchronous read timeout - slave side */
 #ifdef ENABLE_KLEE
-<<<<<<< HEAD:src/redis.h
-#define REDIS_REPL_SYNCIO_TIMEOUT 0
-=======
-#define CONFIG_REPL_SYNCIO_TIMEOUT 100000000
->>>>>>> Fixed timer issues in analysis.:src/server.h
+#define REDIS_REPL_SYNCIO_TIMEOUT 100000000
 #else
 #define REDIS_REPL_SYNCIO_TIMEOUT 5
 #endif

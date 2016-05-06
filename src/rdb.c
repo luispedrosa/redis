@@ -1148,15 +1148,15 @@ int rdbLoadFromRio(rio *rdb) {
     if (rioRead(rdb,buf,9) == 0) goto eoferr;
     buf[9] = '\0';
     if (memcmp(buf,"REDIS",5) != 0) {
-        serverLog(LL_WARNING,"Wrong signature trying to load DB from file");
+        redisLog(REDIS_WARNING,"Wrong signature trying to load DB from file");
         errno = EINVAL;
-        return C_ERR;
+        return REDIS_ERR;
     }
     rdbver = atoi(buf+5);
-    if (rdbver < 1 || rdbver > RDB_VERSION) {
-        serverLog(LL_WARNING,"Can't handle RDB format version %d",rdbver);
+    if (rdbver < 1 || rdbver > REDIS_RDB_VERSION) {
+        redisLog(REDIS_WARNING,"Can't handle RDB format version %d",rdbver);
         errno = EINVAL;
-        return C_ERR;
+        return REDIS_ERR;
     }
 
     startLoadingFromRio(rdb);
@@ -1166,80 +1166,35 @@ int rdbLoadFromRio(rio *rdb) {
 
         /* Read type. */
         if ((type = rdbLoadType(rdb)) == -1) goto eoferr;
-
-        /* Handle special types. */
-        if (type == RDB_OPCODE_EXPIRETIME) {
-            /* EXPIRETIME: load an expire associated with the next key
-             * to load. Note that after loading an expire we need to
-             * load the actual type, and continue. */
+        if (type == REDIS_RDB_OPCODE_EXPIRETIME) {
             if ((expiretime = rdbLoadTime(rdb)) == -1) goto eoferr;
             /* We read the time so we need to read the object type again. */
             if ((type = rdbLoadType(rdb)) == -1) goto eoferr;
             /* the EXPIRETIME opcode specifies time in seconds, so convert
              * into milliseconds. */
             expiretime *= 1000;
-        } else if (type == RDB_OPCODE_EXPIRETIME_MS) {
-            /* EXPIRETIME_MS: milliseconds precision expire times introduced
-             * with RDB v3. Like EXPIRETIME but no with more precision. */
+        } else if (type == REDIS_RDB_OPCODE_EXPIRETIME_MS) {
+            /* Milliseconds precision expire times introduced with RDB
+             * version 3. */
             if ((expiretime = rdbLoadMillisecondTime(rdb)) == -1) goto eoferr;
             /* We read the time so we need to read the object type again. */
             if ((type = rdbLoadType(rdb)) == -1) goto eoferr;
-        } else if (type == RDB_OPCODE_EOF) {
-            /* EOF: End of file, exit the main loop. */
+        }
+
+        if (type == REDIS_RDB_OPCODE_EOF)
             break;
-        } else if (type == RDB_OPCODE_SELECTDB) {
-            /* SELECTDB: Select the specified database. */
-            if ((dbid = rdbLoadLen(rdb,NULL)) == RDB_LENERR)
+
+        /* Handle SELECT DB opcode as a special case */
+        if (type == REDIS_RDB_OPCODE_SELECTDB) {
+            if ((dbid = rdbLoadLen(rdb,NULL)) == REDIS_RDB_LENERR)
                 goto eoferr;
             if (dbid >= (unsigned)server.dbnum) {
-                serverLog(LL_WARNING,
-                    "FATAL: Data file was created with a Redis "
-                    "server configured to handle more than %d "
-                    "databases. Exiting\n", server.dbnum);
+                redisLog(REDIS_WARNING,"FATAL: Data file was created with a Redis server configured to handle more than %d databases. Exiting\n", server.dbnum);
                 exit(1);
             }
             db = server.db+dbid;
-            continue; /* Read type again. */
-        } else if (type == RDB_OPCODE_RESIZEDB) {
-            /* RESIZEDB: Hint about the size of the keys in the currently
-             * selected data base, in order to avoid useless rehashing. */
-            uint32_t db_size, expires_size;
-            if ((db_size = rdbLoadLen(rdb,NULL)) == RDB_LENERR)
-                goto eoferr;
-            if ((expires_size = rdbLoadLen(rdb,NULL)) == RDB_LENERR)
-                goto eoferr;
-            dictExpand(db->dict,db_size);
-            dictExpand(db->expires,expires_size);
-            continue; /* Read type again. */
-        } else if (type == RDB_OPCODE_AUX) {
-            /* AUX: generic string-string fields. Use to add state to RDB
-             * which is backward compatible. Implementations of RDB loading
-             * are requierd to skip AUX fields they don't understand.
-             *
-             * An AUX field is composed of two strings: key and value. */
-            robj *auxkey, *auxval;
-            if ((auxkey = rdbLoadStringObject(rdb)) == NULL) goto eoferr;
-            if ((auxval = rdbLoadStringObject(rdb)) == NULL) goto eoferr;
-
-            if (((char*)auxkey->ptr)[0] == '%') {
-                /* All the fields with a name staring with '%' are considered
-                 * information fields and are logged at startup with a log
-                 * level of NOTICE. */
-                serverLog(LL_NOTICE,"RDB '%s': %s",
-                    (char*)auxkey->ptr,
-                    (char*)auxval->ptr);
-            } else {
-                /* We ignore fields we don't understand, as by AUX field
-                 * contract. */
-                serverLog(LL_DEBUG,"Unrecognized RDB AUX field: '%s'",
-                    (char*)auxkey->ptr);
-            }
-
-            decrRefCount(auxkey);
-            decrRefCount(auxval);
-            continue; /* Read type again. */
+            continue;
         }
-
         /* Read key */
         if ((key = rdbLoadStringObject(rdb)) == NULL) goto eoferr;
         /* Read value */
@@ -1269,20 +1224,20 @@ int rdbLoadFromRio(rio *rdb) {
         if (rioRead(rdb,&cksum,8) == 0) goto eoferr;
         memrev64ifbe(&cksum);
         if (cksum == 0) {
-            serverLog(LL_WARNING,"RDB file was saved with checksum disabled: no check performed.");
+            redisLog(REDIS_WARNING,"RDB file was saved with checksum disabled: no check performed.");
         } else if (cksum != expected) {
-            serverLog(LL_WARNING,"Wrong RDB checksum. Aborting now.");
-            rdbExitReportCorruptRDB("RDB CRC error");
+            redisLog(REDIS_WARNING,"Wrong RDB checksum. Aborting now.");
+            exit(1);
         }
     }
 
     stopLoading();
-    return C_OK;
+    return REDIS_OK;
 
 eoferr: /* unexpected end of file is handled here with a fatal exit */
-    serverLog(LL_WARNING,"Short read or OOM loading DB. Unrecoverable error, aborting now.");
-    rdbExitReportCorruptRDB("Unexpected EOF reading RDB file");
-    return C_ERR; /* Just to avoid warning */
+    redisLog(REDIS_WARNING,"Short read or OOM loading DB. Unrecoverable error, aborting now.");
+    exit(1);
+    return REDIS_ERR; /* Just to avoid warning */
 }
 #endif
 
@@ -1552,7 +1507,7 @@ int rdbSaveToSlavesSockets(void) {
   listNode *ln;
   listIter li;
 
-  if (server.rdb_child_pid != -1) return C_ERR;
+  if (server.rdb_child_pid != -1) return REDIS_ERR;
 
   /* Collect the file descriptors of the slaves we want to transfer
    * the RDB to, which are i WAIT_BGSAVE_START state. */
@@ -1561,14 +1516,14 @@ int rdbSaveToSlavesSockets(void) {
 
   listRewind(server.slaves,&li);
   while((ln = listNext(&li))) {
-    client *slave = ln->value;
+    redisClient *slave = ln->value;
 
-    if (slave->replstate == SLAVE_STATE_WAIT_BGSAVE_START) {
+    if (slave->replstate == REDIS_REPL_WAIT_BGSAVE_START) {
       fds[numfds++] = slave->fd;
-      replicationSetupSlaveForFullResync(slave,getPsyncInitialOffset());
+      slave->replstate = REDIS_REPL_WAIT_BGSAVE_END;
       /* Put the socket in non-blocking mode to simplify RDB transfer.
-       * We'll restore it when the children returns (since duped socket
-       * will share the O_NONBLOCK attribute with the parent). */
+        * We'll restore it when the children returns (since duped socket
+        * will share the O_NONBLOCK attribute with the parent). */
       anetBlock(NULL,slave->fd);
       anetSendTimeout(NULL,slave->fd,server.repl_timeout*1000);
     }
@@ -1580,17 +1535,17 @@ int rdbSaveToSlavesSockets(void) {
   rioInitWithFdset(&slave_sockets,fds,numfds);
 
   retval = rdbSaveRioWithEOFMark(&slave_sockets,NULL);
-  if (retval == C_OK && rioFlush(&slave_sockets) == 0)
-    retval = C_ERR;
+  if (retval == REDIS_OK && rioFlush(&slave_sockets) == 0)
+    retval = REDIS_ERR;
 
   zfree(fds);
 
   listRewind(server.slaves,&li);
   while((ln = listNext(&li))) {
-    client *slave = ln->value;
+    redisClient *slave = ln->value;
 
-    if (slave->replstate == SLAVE_STATE_WAIT_BGSAVE_END) {
-      serverLog(LL_WARNING,
+    if (slave->replstate == REDIS_REPL_WAIT_BGSAVE_END) {
+      redisLog(REDIS_WARNING,
                 "Slave %s correctly received the streamed RDB file.",
                 replicationGetSlaveName(slave));
       /* Restore the socket as non-blocking. */
@@ -1599,9 +1554,9 @@ int rdbSaveToSlavesSockets(void) {
     }
   }
 
-  updateSlavesWaitingBgsave(C_OK, RDB_CHILD_TYPE_SOCKET);
+  updateSlavesWaitingBgsave(REDIS_OK, REDIS_RDB_CHILD_TYPE_SOCKET);
 
-  return C_OK; /* Unreached. */
+  return REDIS_OK; /* Unreached. */
 #else
     int *fds;
     uint64_t *clientids;

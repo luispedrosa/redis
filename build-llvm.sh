@@ -86,11 +86,10 @@ llvm-link -o src/redis-cli \
 
 llvm-link -o src/redis-server \
   src/adlist.o \
-  src/quicklist.o \
   src/ae.o \
   src/anet.o \
   src/dict.o \
-  src/server.o \
+  src/redis.o \
   src/sds.o \
   src/zmalloc.o \
   src/lzf_c.o \
@@ -137,13 +136,8 @@ llvm-link -o src/redis-server \
   src/hyperloglog.o \
   src/latency.o \
   src/sparkline.o \
-  src/redis-check-rdb.o \
-  src/geo.o \
-  src/lazyfree.o \
   deps/hiredis/libhiredis.a \
-  deps/lua/src/liblua.a \
-  deps/geohash-int/geohash.o \
-  deps/geohash-int/geohash_helper.o
+  deps/lua/src/liblua.a
 
 clang -Wall -O0 -g -DENABLE_SPA -DENABLE_KLEE -emit-llvm \
   -c -o spa-client.o \
