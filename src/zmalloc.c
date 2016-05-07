@@ -67,6 +67,10 @@ void zlibc_free(void *ptr) {
 #define free(ptr) je_free(ptr)
 #endif
 
+#ifdef ENABLE_KLEE
+#define update_zmalloc_stat_add(__n) (used_memory += (__n), used_memory)
+#define update_zmalloc_stat_sub(__n) (used_memory += (__n), used_memory)
+#else
 #if defined(__ATOMIC_RELAXED)
 #define update_zmalloc_stat_add(__n) __atomic_add_fetch(&used_memory, (__n), __ATOMIC_RELAXED)
 #define update_zmalloc_stat_sub(__n) __atomic_sub_fetch(&used_memory, (__n), __ATOMIC_RELAXED)
@@ -86,6 +90,7 @@ void zlibc_free(void *ptr) {
     pthread_mutex_unlock(&used_memory_mutex); \
 } while(0)
 
+#endif
 #endif
 
 #define update_zmalloc_stat_alloc(__n) do { \
