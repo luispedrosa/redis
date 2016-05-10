@@ -29,13 +29,13 @@ spa-explore-conversation \
     redis-multiserver.paths \
     >>redis-multiserver.paths.log 2>&1 &
 
-echo "Follow analysis progress on: http://localhost:8000/"
-spa-doc --serve-http 8000 \
-        --map-src /home/lpedrosa/redis=/home/david/Projects/redis \
-        --color-filter "lightgreen:REACHED redis_success" \
-        --color-filter "orangered:REACHED redis_fail" \
-        --color-filter "cyan:CONVERSATION $(echo $TARGET_CONVERSATION | sed 's/ *; */ OR CONVERSATION /')" \
-        redis-multiserver.paths
+# echo "Follow analysis progress on: http://localhost:8000/"
+# spa-doc --serve-http 8000 \
+#         --map-src /home/lpedrosa/redis=/home/david/Projects/redis \
+#         --color-filter "lightgreen:REACHED redis_success" \
+#         --color-filter "orangered:REACHED redis_fail" \
+#         --color-filter "cyan:CONVERSATION $(echo $TARGET_CONVERSATION | sed 's/ *; */ OR CONVERSATION /')" \
+#         redis-multiserver.paths
 
 wait $SPA_PID
 echo "Analysis is complete. Ctrl-C when ready."
