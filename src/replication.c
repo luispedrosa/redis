@@ -405,7 +405,11 @@ int masterTryPartialResynchronization(redisClient *c) {
      * new commands at this stage. But we are sure the socket send buffer is
      * empty so this write will never fail actually. */
     buflen = snprintf(buf,sizeof(buf),"+CONTINUE\r\n");
+#ifdef ENABLE_KLEE
+    if (send(c->fd,buf,buflen,0) != buflen) {
+#else
     if (write(c->fd,buf,buflen) != buflen) {
+#endif
         freeClientAsync(c);
         return REDIS_OK;
     }
@@ -430,7 +434,11 @@ need_full_resync:
     /* Again, we can't use the connection buffers (see above). */
     buflen = snprintf(buf,sizeof(buf),"+FULLRESYNC %s %lld\r\n",
                       server.runid,psync_offset);
+#ifdef ENABLE_KLEE
+    if (send(c->fd,buf,buflen,0) != buflen) {
+#else
     if (write(c->fd,buf,buflen) != buflen) {
+#endif
         freeClientAsync(c);
         return REDIS_OK;
     }
@@ -684,7 +692,11 @@ void sendBulkToSlave(aeEventLoop *el, int fd, void *privdata, int mask) {
      * replication process. Currently the preamble is just the bulk count of
      * the file in the form "$<length>\r\n". */
     if (slave->replpreamble) {
+#ifdef ENABLE_KLEE
+        nwritten = send(fd,slave->replpreamble,sdslen(slave->replpreamble),0);
+#else
         nwritten = write(fd,slave->replpreamble,sdslen(slave->replpreamble));
+#endif
         if (nwritten == -1) {
             redisLog(REDIS_VERBOSE,"Write error sending RDB preamble to slave: %s",
                 strerror(errno));
@@ -711,7 +723,11 @@ void sendBulkToSlave(aeEventLoop *el, int fd, void *privdata, int mask) {
         freeClient(slave);
         return;
     }
+#ifdef ENABLE_KLEE
+    if ((nwritten = send(fd,buf,buflen,0)) == -1) {
+#else
     if ((nwritten = write(fd,buf,buflen)) == -1) {
+#endif
         if (errno != EAGAIN) {
             redisLog(REDIS_WARNING,"Write error sending DB to slave: %s",
                 strerror(errno));
@@ -845,7 +861,11 @@ void replicationSendNewlineToMaster(void) {
     static time_t newline_sent;
     if (time(NULL) != newline_sent) {
         newline_sent = time(NULL);
+#ifdef ENABLE_KLEE
+        if (send(server.repl_transfer_s,"\n",1,0) == -1) {
+#else
         if (write(server.repl_transfer_s,"\n",1) == -1) {
+#endif
             /* Pinging back in this stage is best-effort. */
         }
     }
