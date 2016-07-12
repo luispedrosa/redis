@@ -700,7 +700,15 @@ int rdbSaveKeyValuePair(rio *rdb, robj *key, robj *val,
     /* Save type, key, value */
     if (rdbSaveObjectType(rdb,val) == -1) return -1;
     if (rdbSaveStringObject(rdb,key) == -1) return -1;
+#if 1//def ENABLE_SPA
+    if (strncmp(key->ptr,"p",2) == 0) {
+      if (rdbSaveRawString(rdb,"1234",4) == -1) return -1;
+    } else {
+      if (rdbSaveObject(rdb,val) == -1) return -1;
+    }
+#else
     if (rdbSaveObject(rdb,val) == -1) return -1;
+#endif
     return 1;
 }
 
