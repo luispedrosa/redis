@@ -2,8 +2,8 @@
 
 set -e
 
-TARGET_CONVERSATION="redis-slave redis-master redis-slave redis-master redis-slave redis-master redis-slave redis-master redis-client redis-master redis-slave redis-master redis-client redis-slave redis-client; \
-                     redis-client redis-master redis-slave redis-master redis-slave redis-master redis-slave redis-master redis-slave redis-master redis-client redis-slave redis-client"
+TARGET_CONVERSATION="redis-slave redis-master redis-slave redis-master redis-slave redis-master redis-slave redis-client redis-master redis-master redis-master redis-master redis-master redis-master redis-master redis-client redis-slave redis-slave redis-client; \
+                     redis-client redis-slave redis-master redis-master redis-slave redis-master redis-slave redis-master redis-slave redis-master redis-master redis-master redis-master redis-master redis-client redis-slave redis-slave redis-client"
 
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
@@ -26,13 +26,13 @@ spa-explore-conversation \
     redis-replicated.paths \
     >>redis-replicated.paths.log 2>&1 &
 
-echo "Follow analysis progress on: http://localhost:8000/"
-spa-doc --serve-http 8000 \
-        --map-src /home/lpedrosa/redis=/home/david/Projects/redis \
-        --color-filter "lightgreen:REACHED redis_success" \
-        --color-filter "orangered:REACHED redis_fail" \
-        --color-filter "cyan:CONVERSATION $(echo $TARGET_CONVERSATION | sed 's/ *; */ OR CONVERSATION /')" \
-        redis-replicated.paths
+# echo "Follow analysis progress on: http://localhost:8000/"
+# spa-doc --serve-http 8000 \
+#         --map-src /home/lpedrosa/redis=/home/david/Projects/redis \
+#         --color-filter "lightgreen:REACHED redis_success" \
+#         --color-filter "orangered:REACHED redis_fail" \
+#         --color-filter "cyan:CONVERSATION $(echo $TARGET_CONVERSATION | sed 's/ *; */ OR CONVERSATION /')" \
+#         redis-replicated.paths
 
 wait $SPA_PID
 echo "Analysis is complete. Ctrl-C when ready."
