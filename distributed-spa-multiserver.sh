@@ -2,7 +2,7 @@
 
 set -e
 
-TARGET_CONVERSATION="redis-client redis-master-a redis-client redis-master-b redis-client redis-slave-a redis-master-a redis-slave-a redis-master-a redis-slave-a redis-master-a redis-slave-a redis-master-a redis-client redis-slave-a redis-client redis-slave-b redis-slave-a redis-slave-b redis-slave-a redis-slave-b redis-slave-a redis-slave-b redis-slave-a redis-client redis-slave-b redis-client redis-slave-a redis-master-b redis-slave-a redis-master-b redis-slave-a redis-master-b redis-slave-a redis-master-b redis-client redis-slave-a redis-client redis-slave-b redis-client"
+TARGET_CONVERSATION="redis-client redis-master-a redis-client redis-master-b redis-client redis-slave-a redis-master-a redis-slave-a redis-master-a redis-slave-a redis-master-a redis-slave-a redis-master-a redis-client redis-slave-a redis-client redis-slave-b redis-slave-a redis-slave-b redis-slave-a redis-slave-b redis-slave-a redis-slave-b redis-slave-a redis-client redis-slave-b redis-client redis-slave-a redis-master-b redis-slave-a redis-master-b redis-slave-a redis-master-b redis-slave-a redis-master-b redis-client redis-slave-a redis-client redis-slave-b redis-slave-b redis-client"
 
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
