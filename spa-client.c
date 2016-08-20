@@ -82,10 +82,12 @@ void spa_entry_masterslave() {
   printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
 #endif
 
-  if (reply->type == REDIS_REPLY_STRING && strcmp(set_value, reply->str) == 0) {
-    redis_success();
-  } else {
-    redis_fail();
+  if (reply->type == REDIS_REPLY_STRING) {
+    if (strcmp(set_value, reply->str) == 0) {
+      redis_success();
+    } else {
+      redis_fail();
+    }
   }
   redis_client_done();
 
