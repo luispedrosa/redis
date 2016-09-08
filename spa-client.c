@@ -57,6 +57,10 @@ void spa_entry_single() {
 }
 
 void spa_entry_masterslave() {
+  char set_key[2] = "k";
+  spa_api_input_var(set_key);
+  set_key[sizeof(set_key) - 1] = '\0';
+
   char set_value[2] = "v";
   spa_api_input_var(set_value);
   set_value[sizeof(set_value) - 1] = '\0';
@@ -64,7 +68,8 @@ void spa_entry_masterslave() {
   redisContext *masterContext = redisConnect("127.0.0.2", 6379);
   assert(masterContext);
 
-  redisReply *reply = redisCommand(masterContext, "SET k %s", set_value);
+  redisReply *reply =
+      redisCommand(masterContext, "SET %s %s", set_key, set_value);
   assert(reply && reply->type == REDIS_REPLY_STATUS);
 #ifndef ENABLE_KLEE
   printf("%s\n", reply->str);
@@ -75,7 +80,7 @@ void spa_entry_masterslave() {
   redisContext *slaveContext = redisConnect("127.0.0.3", 6380);
   assert(slaveContext);
 
-  reply = redisCommand(slaveContext, "GET k");
+  reply = redisCommand(slaveContext, "GET %s", set_key);
   assert(reply &&
          (reply->type == REDIS_REPLY_STRING || reply->type == REDIS_REPLY_NIL));
 #ifndef ENABLE_KLEE
