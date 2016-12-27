@@ -241,18 +241,24 @@ void spa_entry_transaction() {
 
   int succeeded;
   do {
-    redisReply *reply = redisCommand(masterContext, "WATCH k");
+    redisReply *reply;
+
+    redisAppendCommand(masterContext, "WATCH k");
+    redisAppendCommand(masterContext, "GET k");
+
+    redisGetReply(masterContext, (void **) &reply);
     assert(reply && reply->type == REDIS_REPLY_STATUS);
 #ifndef ENABLE_KLEE
-    printf("%s\n", reply->str);
+    printf("WATCH k: %s\n", reply->str);
 #endif
     freeReplyObject(reply);
 
-    reply = redisCommand(masterContext, "GET k");
+    redisGetReply(masterContext, (void **) &reply);
     assert(reply && (reply->type == REDIS_REPLY_STRING ||
                      reply->type == REDIS_REPLY_NIL));
 #ifndef ENABLE_KLEE
-    printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
+    printf("GET K: %s\n",
+           reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
 #endif
     if (reply->type == REDIS_REPLY_STRING) {
       strncpy(set_value, reply->str, sizeof(set_value));
@@ -263,30 +269,34 @@ void spa_entry_transaction() {
 
     set_value[0]++;
 
-    reply = redisCommand(masterContext, "MULTI");
+    redisAppendCommand(masterContext, "MULTI");
+    redisAppendCommand(masterContext, "SET k %s", set_value);
+    redisAppendCommand(masterContext, "EXEC");
+
+    redisGetReply(masterContext, (void **) &reply);
     assert(reply && reply->type == REDIS_REPLY_STATUS);
 #ifndef ENABLE_KLEE
-    printf("%s\n", reply->str);
+    printf("MULTI: %s\n", reply->str);
 #endif
     freeReplyObject(reply);
 
-    reply = redisCommand(masterContext, "SET k %s", set_value);
+    redisGetReply(masterContext, (void **) &reply);
     assert(reply && reply->type == REDIS_REPLY_STATUS);
 #ifndef ENABLE_KLEE
-    printf("%s\n", reply->str);
+    printf("SET k %s: %s\n", set_value, reply->str);
 #endif
     freeReplyObject(reply);
 
-    reply = redisCommand(masterContext, "EXEC");
+    redisGetReply(masterContext, (void **) &reply);
     assert(reply);
 #ifndef ENABLE_KLEE
     if (reply->type == REDIS_REPLY_NIL) {
-      printf("Transaction aborted.\n");
+      printf("EXEC: Transaction aborted.\n");
     } else if (reply->type == REDIS_REPLY_ARRAY) {
-      printf("Transaction committed.\n");
+      printf("EXEC: Transaction committed.\n");
       int i;
       for (i = 0; i < reply->elements; i++) {
-        printf("Result: %s\n", reply->element[i]->str);
+        printf("EXEC: %s\n", reply->element[i]->str);
       }
     } else {
       assert(0 && "Unknown response type.");
@@ -295,21 +305,11 @@ void spa_entry_transaction() {
     succeeded = reply->type == REDIS_REPLY_ARRAY;
     freeReplyObject(reply);
   } while (!succeeded);
-
-  redisReply *reply = redisCommand(masterContext, "GET k");
-  assert(reply && reply->type == REDIS_REPLY_STRING);
-#ifndef ENABLE_KLEE
-  printf("%s\n", reply->type == REDIS_REPLY_STRING ? reply->str : "(nil)");
-#endif
-  if (strcmp("2", reply->str) == 0) {
-    redis_success();
-  } else {
-    redis_fail();
-  }
-  freeReplyObject(reply);
-
   redisFree(masterContext);
 
+  if (strcmp("2", set_value) == 0) {
+    redis_success();
+  }
   redis_client_done();
 }
 
