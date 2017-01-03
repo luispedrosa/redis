@@ -24,6 +24,10 @@ void __attribute__((noinline, weak)) redis_client_done() {
 }
 
 void spa_entry_single() {
+  char set_key[2] = "k";
+  spa_api_input_var(set_key);
+  set_key[sizeof(set_key) - 1] = '\0';
+
   char set_value[2] = "v";
   spa_api_input_var(set_value);
   set_value[sizeof(set_value) - 1] = '\0';
@@ -31,14 +35,14 @@ void spa_entry_single() {
   redisContext *context = redisConnect("127.0.0.2", 6379);
   assert(context);
 
-  redisReply *reply = redisCommand(context, "SET k %s", set_value);
+  redisReply *reply = redisCommand(context, "SET %s %s", set_key, set_value);
   assert(reply && reply->type == REDIS_REPLY_STATUS);
 #ifndef ENABLE_KLEE
   printf("%s\n", reply->str);
 #endif
   freeReplyObject(reply);
 
-  reply = redisCommand(context, "GET k");
+  reply = redisCommand(context, "GET %s", set_key);
   assert(reply &&
          (reply->type == REDIS_REPLY_STRING || reply->type == REDIS_REPLY_NIL));
 #ifndef ENABLE_KLEE
