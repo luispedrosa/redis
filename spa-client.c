@@ -24,7 +24,7 @@ void __attribute__((noinline, weak)) redis_client_done() {
 }
 
 void spa_entry_single() {
-  char set_value[2] = "v";
+  char set_value[3] = "v";
   spa_api_input_var(set_value);
   set_value[sizeof(set_value) - 1] = '\0';
 
