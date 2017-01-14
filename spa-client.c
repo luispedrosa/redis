@@ -245,15 +245,20 @@ void spa_entry_transaction() {
 
   int succeeded;
   do {
-    redisReply *reply = redisCommand(masterContext, "WATCH k");
+    redisReply *reply;
 
+    redisAppendCommand(masterContext, "WATCH k");
+    redisAppendCommand(masterContext, "GET k");
+    redisAppendCommand(masterContext, "MULTI");
+
+    redisGetReply(masterContext, (void **) &reply);
     assert(reply && reply->type == REDIS_REPLY_STATUS);
 #ifndef ENABLE_KLEE
     printf("WATCH k: %s\n", reply->str);
 #endif
     freeReplyObject(reply);
 
-    reply = redisCommand(masterContext, "GET k");
+    redisGetReply(masterContext, (void **) &reply);
     assert(reply && (reply->type == REDIS_REPLY_STRING ||
                      reply->type == REDIS_REPLY_NIL));
 #ifndef ENABLE_KLEE
@@ -269,21 +274,24 @@ void spa_entry_transaction() {
 
     set_value[0]++;
 
-    reply = redisCommand(masterContext, "MULTI");
+    redisGetReply(masterContext, (void **) &reply);
     assert(reply && reply->type == REDIS_REPLY_STATUS);
 #ifndef ENABLE_KLEE
     printf("MULTI: %s\n", reply->str);
 #endif
     freeReplyObject(reply);
 
-    reply = redisCommand(masterContext, "SET k %s", set_value);
+    redisAppendCommand(masterContext, "SET k %s", set_value);
+    redisAppendCommand(masterContext, "EXEC");
+
+    redisGetReply(masterContext, (void **) &reply);
     assert(reply && reply->type == REDIS_REPLY_STATUS);
 #ifndef ENABLE_KLEE
     printf("SET k %s: %s\n", set_value, reply->str);
 #endif
     freeReplyObject(reply);
 
-    reply = redisCommand(masterContext, "EXEC");
+    redisGetReply(masterContext, (void **) &reply);
     assert(reply);
 #ifndef ENABLE_KLEE
     if (reply->type == REDIS_REPLY_NIL) {
