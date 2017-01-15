@@ -62,7 +62,7 @@ void spa_entry_single() {
 
 void spa_entry_masterslave() {
   char set_key[2] = "k";
-  spa_api_input_var(set_key);
+  //spa_api_input_var(set_key);
   set_key[sizeof(set_key) - 1] = '\0';
 
   char set_value[2] = "v";
