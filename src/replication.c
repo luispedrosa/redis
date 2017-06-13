@@ -1698,6 +1698,11 @@ void replicationAbortSyncTransfer(void) {
 #endif
 }
 
+#ifdef ENABLE_KLEE
+void repeatRecovery() {
+}
+#endif
+
 /* This function aborts a non blocking replication attempt if there is one
  * in progress, by canceling the non-blocking connect attempt or
  * the initial bulk transfer.
@@ -1707,6 +1712,13 @@ void replicationAbortSyncTransfer(void) {
  *
  * Otherwise zero is returned and no operation is perforemd at all. */
 int cancelReplicationHandshake(void) {
+#ifdef ENABLE_KLEE
+    static int count = 0;
+    if (++count >= 2) {
+      repeatRecovery();
+    }
+#endif
+
     if (server.repl_state == REPL_STATE_TRANSFER) {
         replicationAbortSyncTransfer();
         server.repl_state = REPL_STATE_CONNECT;
